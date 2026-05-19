@@ -13,8 +13,9 @@ A macOS app that mirrors any region of your screen into a floating, always-on-to
 
 ## Requirements
 
-- macOS 14 Sonoma or later
+- **macOS 26 Tahoe or later** (set via `MACOSX_DEPLOYMENT_TARGET = 26.0`)
 - Screen Recording permission (the system will prompt on first launch)
+- For building from source: Xcode 26+ with Swift 6 toolchain
 
 ## Install (pre-built release)
 
@@ -56,11 +57,11 @@ Then open the app normally.
 
 ## Building
 
-1. Open `IllusionApp.xcodeproj` in Xcode 15+
+1. Open `IllusionApp.xcodeproj` in Xcode 26+
 2. Select your development team in *Signing & Capabilities*
 3. Build & Run (`⌘R`)
 
-> **Note:** The app sandbox is disabled so ScreenCaptureKit can capture other apps' content. For Mac App Store distribution you would need to enable the sandbox and use the `com.apple.security.screen-capture` entitlement instead.
+> **Note:** The app sandbox is **disabled** so ScreenCaptureKit can capture other apps' content. The project also requests `com.apple.security.screen-capture` and `com.apple.security.system-content` entitlements (the latter is required on macOS 26 Tahoe for SCK process enumeration). For Mac App Store distribution you would need to re-enable the sandbox.
 
 ## Usage
 
