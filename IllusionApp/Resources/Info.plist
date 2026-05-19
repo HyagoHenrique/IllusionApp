@@ -11,7 +11,7 @@
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>ScreenMirror</string>
+    <string>IllusionApp</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -24,7 +24,7 @@
     <true/>
     <!-- Required for ScreenCaptureKit -->
     <key>NSScreenCaptureUsageDescription</key>
-    <string>ScreenMirror needs permission to capture your screen to display the mirrored region.</string>
+    <string>IllusionApp needs permission to capture your screen to display the mirrored region.</string>
     <!-- Disable App Sandbox so SCK permission dialog appears (or enable with entitlements) -->
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>

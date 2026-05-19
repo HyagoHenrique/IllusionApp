@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct ScreenMirrorApp: App {
+struct IllusionApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {

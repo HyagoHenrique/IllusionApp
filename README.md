@@ -1,4 +1,4 @@
-# ScreenMirror
+# IllusionApp
 
 A macOS app that mirrors any region of your screen into a floating, always-on-top window.
 
@@ -18,7 +18,7 @@ A macOS app that mirrors any region of your screen into a floating, always-on-to
 
 ## Building
 
-1. Open `ScreenMirror.xcodeproj` in Xcode 15+
+1. Open `IllusionApp.xcodeproj` in Xcode 15+
 2. Select your development team in *Signing & Capabilities*
 3. Build & Run (`⌘R`)
 
@@ -39,9 +39,9 @@ A macOS app that mirrors any region of your screen into a floating, always-on-to
 ## Architecture
 
 ```
-ScreenMirror/
+IllusionApp/
 ├── App/
-│   ├── ScreenMirrorApp.swift        Entry point, connects AppDelegate
+│   ├── IllusionApp.swift        Entry point, connects AppDelegate
 │   └── AppDelegate.swift            Status bar, orchestrates selection → mirror flow
 ├── Features/
 │   ├── Selection/

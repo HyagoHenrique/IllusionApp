@@ -18,7 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupStatusBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: "rectangle.on.rectangle", accessibilityDescription: "ScreenMirror")
+            button.image = NSImage(systemSymbolName: "rectangle.on.rectangle", accessibilityDescription: "IllusionApp")
         }
 
         let menu = NSMenu()
@@ -26,7 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(withTitle: "Unlock all screens", action: #selector(unlockAllScreens), keyEquivalent: "u")
         menu.addItem(withTitle: "Stop mirroring", action: #selector(stopMirroring), keyEquivalent: ".")
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit ScreenMirror", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: "Quit IllusionApp", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 
         statusItem?.menu = menu
     }

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AA000001 /* ScreenMirrorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100001 /* ScreenMirrorApp.swift */; };
+		AA000001 /* IllusionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100001 /* IllusionApp.swift */; };
 		AA000002 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100002 /* AppDelegate.swift */; };
 		AA000003 /* MirrorRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100003 /* MirrorRegion.swift */; };
 		AA000004 /* CGRect+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100004 /* CGRect+Extensions.swift */; };
@@ -22,7 +22,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		AA100001 /* ScreenMirrorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenMirrorApp.swift; sourceTree = "<group>"; };
+		AA100001 /* IllusionApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IllusionApp.swift; sourceTree = "<group>"; };
 		AA100002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AA100003 /* MirrorRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorRegion.swift; sourceTree = "<group>"; };
 		AA100004 /* CGRect+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGRect+Extensions.swift"; sourceTree = "<group>"; };
@@ -35,7 +35,7 @@
 		AA100011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA100012 /* ScreenCaptureKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScreenCaptureKit.framework; path = System/Library/Frameworks/ScreenCaptureKit.framework; sourceTree = SDKROOT; };
 		AA100013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		AAPROD001 /* ScreenMirror.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScreenMirror.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AAPROD001 /* IllusionApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IllusionApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,13 +53,13 @@
 		AAGRP0000 /* root */ = {
 			isa = PBXGroup;
 			children = (
-				AAGRP0001 /* ScreenMirror */,
+				AAGRP0001 /* IllusionApp */,
 				AAGRP00FF /* Frameworks */,
 				AAGRP00FE /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		AAGRP0001 /* ScreenMirror */ = {
+		AAGRP0001 /* IllusionApp */ = {
 			isa = PBXGroup;
 			children = (
 				AAGRP0002 /* App */,
@@ -67,14 +67,14 @@
 				AAGRP0006 /* Shared */,
 				AAGRP0009 /* Resources */,
 			);
-			name = ScreenMirror;
-			path = ScreenMirror;
+			name = IllusionApp;
+			path = IllusionApp;
 			sourceTree = "<group>";
 		};
 		AAGRP0002 /* App */ = {
 			isa = PBXGroup;
 			children = (
-				AA100001 /* ScreenMirrorApp.swift */,
+				AA100001 /* IllusionApp.swift */,
 				AA100002 /* AppDelegate.swift */,
 			);
 			path = App;
@@ -162,7 +162,7 @@
 		AAGRP00FE /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AAPROD001 /* ScreenMirror.app */,
+				AAPROD001 /* IllusionApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -170,9 +170,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AATGT0001 /* ScreenMirror */ = {
+		AATGT0001 /* IllusionApp */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AACFL0001 /* Build configuration list for PBXNativeTarget "ScreenMirror" */;
+			buildConfigurationList = AACFL0001 /* Build configuration list for PBXNativeTarget "IllusionApp" */;
 			buildPhases = (
 				AABP0002 /* Sources */,
 				AABP0001 /* Frameworks */,
@@ -182,9 +182,9 @@
 			);
 			dependencies = (
 			);
-			name = ScreenMirror;
-			productName = ScreenMirror;
-			productReference = AAPROD001 /* ScreenMirror.app */;
+			name = IllusionApp;
+			productName = IllusionApp;
+			productReference = AAPROD001 /* IllusionApp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -196,14 +196,14 @@
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
 				LastUpgradeCheck = 2630;
-				ORGANIZATIONNAME = "ScreenMirror";
+				ORGANIZATIONNAME = "IllusionApp";
 				TargetAttributes = {
 					AATGT0001 = {
 						CreatedOnToolsVersion = 15.0;
 					};
 				};
 			};
-			buildConfigurationList = AACFL0000 /* Build configuration list for PBXProject "ScreenMirror" */;
+			buildConfigurationList = AACFL0000 /* Build configuration list for PBXProject "IllusionApp" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -216,7 +216,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				AATGT0001 /* ScreenMirror */,
+				AATGT0001 /* IllusionApp */,
 			);
 		};
 /* End PBXProject section */
@@ -237,7 +237,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA000001 /* ScreenMirrorApp.swift in Sources */,
+				AA000001 /* IllusionApp.swift in Sources */,
 				AA000002 /* AppDelegate.swift in Sources */,
 				AA000003 /* MirrorRegion.swift in Sources */,
 				AA000004 /* CGRect+Extensions.swift in Sources */,
@@ -375,20 +375,20 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = ScreenMirror/ScreenMirror.entitlements;
+				CODE_SIGN_ENTITLEMENTS = IllusionApp/IllusionApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = ScreenMirror/Resources/Info.plist;
+				INFOPLIST_FILE = IllusionApp/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.screenmirror.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.illusionapp.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
@@ -401,20 +401,20 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = ScreenMirror/ScreenMirror.entitlements;
+				CODE_SIGN_ENTITLEMENTS = IllusionApp/IllusionApp.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = ScreenMirror/Resources/Info.plist;
+				INFOPLIST_FILE = IllusionApp/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.screenmirror.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.illusionapp.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
@@ -425,7 +425,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		AACFL0000 /* Build configuration list for PBXProject "ScreenMirror" */ = {
+		AACFL0000 /* Build configuration list for PBXProject "IllusionApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AAXBC0001 /* Debug */,
@@ -434,7 +434,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AACFL0001 /* Build configuration list for PBXNativeTarget "ScreenMirror" */ = {
+		AACFL0001 /* Build configuration list for PBXNativeTarget "IllusionApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AAXBC0003 /* Debug */,
