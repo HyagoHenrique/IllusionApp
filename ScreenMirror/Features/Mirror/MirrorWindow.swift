@@ -32,23 +32,24 @@ final class MirrorWindow: NSWindow {
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         minSize = NSSize(width: 100, height: 80)
 
-        // Rounded corners on the host layer
-        contentView?.wantsLayer = true
-        contentView?.layer?.cornerRadius = 8
-        contentView?.layer?.masksToBounds = true
-
-        // Add right-click menu
-        if let view = contentView {
-            let gestureRecognizer = NSGestureRecognizer()
-            gestureRecognizer.action = #selector(showContextMenu)
-            view.addGestureRecognizer(gestureRecognizer)
-        }
+        // Rounded corners will be set on the host layer in attachContent()
     }
 
     private func attachContent() {
         let mirrorView = MirrorView(viewModel: viewModel)
         let host = NSHostingView(rootView: mirrorView)
         contentView = host
+
+        // Rounded corners on the host layer
+        host.wantsLayer = true
+        host.layer?.cornerRadius = 8
+        host.layer?.masksToBounds = true
+
+        // Add right-click gesture recognizer for context menu
+        // (Must be done after contentView is set)
+        let rightClickGestureRecognizer = NSClickGestureRecognizer(target: self, action: #selector(showContextMenu))
+        rightClickGestureRecognizer.numberOfClicksRequired = 1
+        host.addGestureRecognizer(rightClickGestureRecognizer)
     }
 
     private func observeClickThrough() {
