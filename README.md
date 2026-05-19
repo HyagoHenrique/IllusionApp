@@ -6,7 +6,9 @@ A macOS app that mirrors any region of your screen into a floating, always-on-to
 
 - **Region selection** — drag to pick any area of the screen
 - **Floating mirror window** — stays above all other apps, freely positionable and resizable
-- **Click-through toggle** — switch between interacting with the mirror or passing clicks to the app beneath
+- **Multiple mirrors** — up to 6 simultaneous mirror windows
+- **Opacity control** — 10% / 25% / 50% / 75% / 100%
+- **Lock mode** — locks position/size and makes clicks pass through. Unlock all via menu bar (⌘U)
 - **60 fps capture** — powered by ScreenCaptureKit's SCStream
 
 ## Requirements
@@ -25,12 +27,14 @@ A macOS app that mirrors any region of your screen into a floating, always-on-to
 ## Usage
 
 1. Click the **rectangle-on-rectangle** icon in the menu bar
-2. Choose **Mirror a region…**
+2. Choose **Mirror a region…** (`⌘M`)
 3. Drag to select the area you want to mirror
 4. The mirror window appears — drag it anywhere, resize freely
 5. Hover the mirror to reveal controls:
-   - **Arrow / Cursor-slash** — toggle click-through
+   - **Eye** — opacity
+   - **Open lock** — lock the window (clicks pass through, position frozen)
    - **✕** — close the mirror
+6. To unlock all locked mirrors: menu bar → **Unlock all screens** (`⌘U`)
 
 ## Architecture
 
