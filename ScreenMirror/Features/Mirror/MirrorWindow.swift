@@ -1,14 +1,10 @@
 import AppKit
 import SwiftUI
-import AVFoundation
-import Foundation
-import ObjectiveC
 
 @MainActor
 final class MirrorWindow: NSWindow {
 
     let viewModel: MirrorViewModel
-    private var displayView: ImageDisplayView?
     private var rightClickMonitor: Any?
 
     init(viewModel: MirrorViewModel) {
@@ -41,90 +37,20 @@ final class MirrorWindow: NSWindow {
     }
 
     private func attachContent() {
-        // Create container for display + controls
-        let containerView = NSView()
-        contentView = containerView
-        containerView.wantsLayer = true
-        containerView.layer?.backgroundColor = NSColor.black.cgColor
+        // Use SwiftUI for better UX and no flicker
+        let mirrorView = MirrorView(viewModel: viewModel)
+        let host = NSHostingView(rootView: mirrorView)
+        contentView = host
 
-        // Use AppKit directly instead of SwiftUI to avoid weak reference overhead
-        let displayView = ImageDisplayView(frame: .zero)
-        displayView.mirrorWindow = self
-        self.displayView = displayView
-        containerView.addSubview(displayView)
+        // Rounded corners on the host layer
+        host.wantsLayer = true
+        host.layer?.cornerRadius = 8
+        host.layer?.masksToBounds = true
 
-        // Create control bar at bottom
-        let controlBar = NSView()
-        controlBar.wantsLayer = true
-        controlBar.layer?.backgroundColor = NSColor(white: 0.2, alpha: 0.9).cgColor
-        containerView.addSubview(controlBar)
-
-        // Toggle Lock/Unlock button (shows current state)
-        let toggleButton = NSButton()
-        toggleButton.title = "🔓"  // Start with unlock icon
-        toggleButton.bezelStyle = .rounded
-        toggleButton.font = NSFont.systemFont(ofSize: 16)
-        toggleButton.target = self
-        toggleButton.action = #selector(handleToggleLockPress)
-        controlBar.addSubview(toggleButton)
-
-        // Layout button
-        toggleButton.translatesAutoresizingMaskIntoConstraints = false
-        controlBar.translatesAutoresizingMaskIntoConstraints = false
-        displayView.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            // Control bar at bottom, full width, 50 points height
-            controlBar.leftAnchor.constraint(equalTo: containerView.leftAnchor),
-            controlBar.rightAnchor.constraint(equalTo: containerView.rightAnchor),
-            controlBar.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
-            controlBar.heightAnchor.constraint(equalToConstant: 50),
-
-            // Display view takes rest of space
-            displayView.leftAnchor.constraint(equalTo: containerView.leftAnchor),
-            displayView.rightAnchor.constraint(equalTo: containerView.rightAnchor),
-            displayView.topAnchor.constraint(equalTo: containerView.topAnchor),
-            displayView.bottomAnchor.constraint(equalTo: controlBar.topAnchor),
-
-            // Button layout - centered
-            toggleButton.centerXAnchor.constraint(equalTo: controlBar.centerXAnchor),
-            toggleButton.centerYAnchor.constraint(equalTo: controlBar.centerYAnchor),
-            toggleButton.widthAnchor.constraint(equalToConstant: 50),
-            toggleButton.heightAnchor.constraint(equalToConstant: 50),
-        ])
-
-        // Store references for updates
-        objc_setAssociatedObject(self, "toggleButton", toggleButton, .OBJC_ASSOCIATION_RETAIN)
-
-        // Update button icon when lock state changes
-        viewModel.onLockedChange = { @MainActor [weak self] locked in
-            guard let toggleButton = objc_getAssociatedObject(self, "toggleButton") as? NSButton else { return }
-            toggleButton.title = locked ? "🔒" : "🔓"
-        }
-
-        // Rounded corners on container
-        containerView.wantsLayer = true
-        containerView.layer?.cornerRadius = 8
-        containerView.layer?.masksToBounds = true
-
-        // Update display when frames arrive (no polling, no flicker)
-        viewModel.onFrameReceived = { [weak self] frame in
-            self?.displayView?.updateImage(frame)
-        }
-    }
-
-    private var toggleButtonPressTimer: Timer?
-
-    @objc private func handleToggleLockPress() {
-        // Start timer on first press, toggle lock after 2s
-        if toggleButtonPressTimer == nil {
-            toggleButtonPressTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
-                Task { @MainActor in
-                    self?.viewModel.isLocked.toggle()
-                    self?.toggleButtonPressTimer = nil
-                }
-            }
-        }
+        // Add right-click gesture recognizer for context menu
+        let rightClickGestureRecognizer = NSClickGestureRecognizer(target: self, action: #selector(showContextMenu))
+        rightClickGestureRecognizer.numberOfClicksRequired = 1
+        host.addGestureRecognizer(rightClickGestureRecognizer)
     }
 
     private func observeClickThrough() {
@@ -232,69 +158,6 @@ final class MirrorWindow: NSWindow {
     // Allow the window to become key so controls respond to clicks.
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { true }
-}
-
-// MARK: - Image Display View
-
-@MainActor
-final class ImageDisplayView: NSView {
-    private var currentImage: CGImage?
-    weak var mirrorWindow: MirrorWindow?
-
-    override init(frame: NSRect) {
-        super.init(frame: frame)
-        setupLayer()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupLayer()
-    }
-
-    private func setupLayer() {
-        // Use CALayer directly for simple image display - no SwiftUI overhead
-        wantsLayer = true
-        layer?.backgroundColor = NSColor.black.cgColor
-        layer?.isOpaque = true
-    }
-
-    func updateImage(_ image: CGImage) {
-        self.currentImage = image
-        // Draw directly on the layer
-        DispatchQueue.main.async { [weak self] in
-            self?.layer?.contents = image
-            self?.setNeedsDisplay(self?.bounds ?? .zero)
-        }
-    }
-
-    override func draw(_ dirtyRect: NSRect) {
-        super.draw(dirtyRect)
-
-        guard let image = currentImage else {
-            NSColor.black.setFill()
-            dirtyRect.fill()
-            return
-        }
-
-        // Draw image to fill the view
-        let context = NSGraphicsContext.current
-        context?.imageInterpolation = .high
-
-        let imageRect = NSRect(origin: .zero, size: CGSize(width: image.width, height: image.height))
-        let viewRect = self.bounds
-        let scaledRect = AVMakeRect(aspectRatio: imageRect.size, insideRect: viewRect)
-
-        let nsImage = NSImage(cgImage: image, size: NSZeroSize)
-        nsImage.draw(in: scaledRect)
-    }
-
-    // MARK: - Mouse Events
-
-    override func rightMouseDown(with event: NSEvent) {
-        // Right-click shows context menu when unlocked
-        // (When locked, global monitor handles it)
-        mirrorWindow?.showContextMenu()
-    }
 }
 
 // MARK: - Controller
