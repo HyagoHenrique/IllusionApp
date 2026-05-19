@@ -41,6 +41,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        // Limit concurrent captures to 6 (optimized with 30 FPS and 50% resolution)
+        let maxConcurrentCaptures = 6
+        guard mirrorWindowControllers.count < maxConcurrentCaptures else {
+            print("[AppDelegate] ERROR: Maximum \(maxConcurrentCaptures) concurrent mirrors allowed")
+            showAlert(
+                title: "Limit Reached",
+                message: "You can have a maximum of \(maxConcurrentCaptures) simultaneous mirror windows. Close one to add another."
+            )
+            return
+        }
+
         guard let screen = NSScreen.main else {
             print("[AppDelegate] ERROR: NSScreen.main is nil")
             return
@@ -95,11 +106,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         print("[AppDelegate] Creating new MirrorViewModel and MirrorWindowController")
         let viewModel = MirrorViewModel()
         let controller = MirrorWindowController(viewModel: viewModel)
+
+        // Setup window close notification to remove from tracking array
+        if let window = controller.window {
+            NotificationCenter.default.addObserver(
+                forName: NSWindow.willCloseNotification,
+                object: window,
+                queue: .main
+            ) { [weak self] _ in
+                print("[AppDelegate] Mirror window closing, removing from tracking array")
+                Task { @MainActor in
+                    self?.mirrorWindowControllers.removeAll { $0.window == window }
+                }
+            }
+        }
+
         mirrorWindowControllers.append(controller)
 
         print("[AppDelegate] Calling controller.show()")
         controller.show(for: region)
         print("[AppDelegate] openMirror completed")
+    }
+
+    private func showAlert(title: String, message: String) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
     }
 
 }
