@@ -64,8 +64,6 @@ final class MirrorWindow: NSWindow {
 
         viewModel.onLockedChange = { @MainActor [weak self] locked in
             self?.isMovableByWindowBackground = !locked
-            // When locked, pass left-clicks through to windows behind
-            self?.ignoresMouseEvents = locked
         }
 
         viewModel.onOpacityChange = { @MainActor [weak self] opacity in
@@ -177,8 +175,19 @@ final class ImageDisplayView: NSView {
     // MARK: - Mouse Events
 
     override func rightMouseDown(with event: NSEvent) {
-        // Right-click always shows context menu
+        // Right-click always shows context menu (even when locked)
         mirrorWindow?.showContextMenu()
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        // Left-click passthrough when locked
+        if let window = mirrorWindow, window.viewModel.isLocked {
+            // When locked, pass left-click through to window behind
+            // Do NOT call super - this prevents the click from being handled by this window
+            return
+        }
+        // When unlocked, handle normally
+        super.mouseDown(with: event)
     }
 }
 
