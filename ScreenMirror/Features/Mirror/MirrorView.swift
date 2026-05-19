@@ -69,10 +69,14 @@ struct MirrorView: View {
         VStack {
             Spacer()
             HStack(spacing: 12) {
-                // Lock status indicator
-                Image(systemName: viewModel.isLocked ? "lock.fill" : "lock.open.fill")
-                    .frame(width: 28, height: 28)
-                    .help(viewModel.isLocked ? "Window is locked (right-click to unlock)" : "Window is unlocked (right-click to lock)")
+                // Lock/Unlock button
+                Button {
+                    viewModel.isLocked.toggle()
+                } label: {
+                    Image(systemName: viewModel.isLocked ? "lock.fill" : "lock.open.fill")
+                        .frame(width: 28, height: 28)
+                }
+                .help(viewModel.isLocked ? "Click to unlock window" : "Click to lock window")
 
                 Button {
                     Task { @MainActor in
@@ -83,7 +87,7 @@ struct MirrorView: View {
                     Image(systemName: "xmark")
                         .frame(width: 28, height: 28)
                 }
-                .help("Close mirror (right-click for menu)")
+                .help("Close mirror")
             }
             .buttonStyle(.plain)
             .foregroundStyle(.white)

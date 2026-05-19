@@ -45,11 +45,6 @@ final class MirrorWindow: NSWindow {
         host.wantsLayer = true
         host.layer?.cornerRadius = 8
         host.layer?.masksToBounds = true
-
-        // Add right-click gesture recognizer for context menu
-        let rightClickGestureRecognizer = NSClickGestureRecognizer(target: self, action: #selector(showContextMenu))
-        rightClickGestureRecognizer.numberOfClicksRequired = 1
-        host.addGestureRecognizer(rightClickGestureRecognizer)
     }
 
     private func observeClickThrough() {
@@ -74,49 +69,6 @@ final class MirrorWindow: NSWindow {
         viewModel.onOpacityChange = { @MainActor [weak self] opacity in
             self?.alphaValue = opacity
         }
-    }
-
-
-    @objc func showContextMenu() {
-        let menu = NSMenu()
-
-        // Lock/Unlock option
-        let lockTitle = viewModel.isLocked ? "Unlock Window" : "Lock Window"
-        menu.addItem(withTitle: lockTitle, action: #selector(toggleLock), keyEquivalent: "")
-
-        menu.addItem(.separator())
-
-        // Opacity submenu
-        let opacityMenu = NSMenu(title: "Opacity")
-        for opacity in [1.0, 0.75, 0.5, 0.25, 0.1] {
-            let title = "\(Int(opacity * 100))%"
-            let item = NSMenuItem(title: title, action: #selector(setOpacity(_:)), keyEquivalent: "")
-            item.tag = Int(opacity * 100)
-            if abs(viewModel.opacity - opacity) < 0.01 {
-                item.state = .on
-            }
-            opacityMenu.addItem(item)
-        }
-        menu.addItem(withTitle: "Opacity", action: nil, keyEquivalent: "")
-        menu.setSubmenu(opacityMenu, for: menu.items.last!)
-
-        menu.addItem(.separator())
-
-        // Close option
-        menu.addItem(withTitle: "Close", action: #selector(close), keyEquivalent: "")
-
-        // Show menu at mouse location
-        if let view = contentView {
-            NSMenu.popUpContextMenu(menu, with: NSApp.currentEvent ?? NSEvent(), for: view)
-        }
-    }
-
-    @objc private func toggleLock() {
-        viewModel.isLocked.toggle()
-    }
-
-    @objc private func setOpacity(_ sender: NSMenuItem) {
-        viewModel.opacity = Double(sender.tag) / 100.0
     }
 
     // Allow the window to become key so controls respond to clicks.
