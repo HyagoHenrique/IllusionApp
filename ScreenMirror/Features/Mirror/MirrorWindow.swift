@@ -9,6 +9,7 @@ final class MirrorWindow: NSWindow {
 
     let viewModel: MirrorViewModel
     private var displayView: ImageDisplayView?
+    private var rightClickMonitor: Any?
 
     init(viewModel: MirrorViewModel) {
         self.viewModel = viewModel
@@ -63,11 +64,57 @@ final class MirrorWindow: NSWindow {
         }
 
         viewModel.onLockedChange = { @MainActor [weak self] locked in
-            self?.isMovableByWindowBackground = !locked
+            guard let self else { return }
+            self.isMovableByWindowBackground = !locked
+
+            // When locked: pass left-clicks through, block resize
+            self.ignoresMouseEvents = locked
+            if locked {
+                // Block resizing when locked
+                self.styleMask.remove(.resizable)
+            } else {
+                // Allow resizing when unlocked
+                self.styleMask.insert(.resizable)
+            }
+
+            // Register global right-click monitor when locked
+            if locked {
+                self.setupGlobalRightClickMonitor()
+            } else {
+                self.removeGlobalRightClickMonitor()
+            }
         }
 
         viewModel.onOpacityChange = { @MainActor [weak self] opacity in
             self?.alphaValue = opacity
+        }
+    }
+
+    private func setupGlobalRightClickMonitor() {
+        // Remove old monitor if exists
+        removeGlobalRightClickMonitor()
+
+        // Add global right-click monitor that works even with ignoresMouseEvents = true
+        rightClickMonitor = NSEvent.addLocalMonitorForEvents(matching: .rightMouseDown) { [weak self] event in
+            guard let self else { return event }
+
+            // Check if right-click is on our window using CGEvent mouse location
+            let mouseLocation = NSEvent.mouseLocation
+            let windowFrame = self.frame
+
+            if NSPointInRect(mouseLocation, windowFrame) {
+                // Show context menu
+                self.showContextMenu()
+                return nil // Consume the event
+            }
+            return event
+        }
+    }
+
+    private func removeGlobalRightClickMonitor() {
+        if let monitor = rightClickMonitor {
+            NSEvent.removeMonitor(monitor)
+            rightClickMonitor = nil
         }
     }
 
@@ -175,19 +222,9 @@ final class ImageDisplayView: NSView {
     // MARK: - Mouse Events
 
     override func rightMouseDown(with event: NSEvent) {
-        // Right-click always shows context menu (even when locked)
+        // Right-click shows context menu when unlocked
+        // (When locked, global monitor handles it)
         mirrorWindow?.showContextMenu()
-    }
-
-    override func mouseDown(with event: NSEvent) {
-        // Left-click passthrough when locked
-        if let window = mirrorWindow, window.viewModel.isLocked {
-            // When locked, pass left-click through to window behind
-            // Do NOT call super - this prevents the click from being handled by this window
-            return
-        }
-        // When unlocked, handle normally
-        super.mouseDown(with: event)
     }
 }
 
