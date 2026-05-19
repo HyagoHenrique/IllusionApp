@@ -5,7 +5,6 @@ import SwiftUI
 final class MirrorWindow: NSWindow {
 
     let viewModel: MirrorViewModel
-    private var rightClickMonitor: Any?
 
     init(viewModel: MirrorViewModel) {
         self.viewModel = viewModel
@@ -62,21 +61,13 @@ final class MirrorWindow: NSWindow {
             guard let self else { return }
             self.isMovableByWindowBackground = !locked
 
-            // When locked: pass left-clicks through, block resize
-            self.ignoresMouseEvents = locked
+            // When locked: block resize
             if locked {
                 // Block resizing when locked
                 self.styleMask.remove(.resizable)
             } else {
                 // Allow resizing when unlocked
                 self.styleMask.insert(.resizable)
-            }
-
-            // Register global right-click monitor when locked
-            if locked {
-                self.setupGlobalRightClickMonitor()
-            } else {
-                self.removeGlobalRightClickMonitor()
             }
         }
 
@@ -85,33 +76,6 @@ final class MirrorWindow: NSWindow {
         }
     }
 
-    private func setupGlobalRightClickMonitor() {
-        // Remove old monitor if exists
-        removeGlobalRightClickMonitor()
-
-        // Add global right-click monitor that works even with ignoresMouseEvents = true
-        rightClickMonitor = NSEvent.addLocalMonitorForEvents(matching: .rightMouseDown) { [weak self] event in
-            guard let self else { return event }
-
-            // Check if right-click is on our window using CGEvent mouse location
-            let mouseLocation = NSEvent.mouseLocation
-            let windowFrame = self.frame
-
-            if NSPointInRect(mouseLocation, windowFrame) {
-                // Show context menu
-                self.showContextMenu()
-                return nil // Consume the event
-            }
-            return event
-        }
-    }
-
-    private func removeGlobalRightClickMonitor() {
-        if let monitor = rightClickMonitor {
-            NSEvent.removeMonitor(monitor)
-            rightClickMonitor = nil
-        }
-    }
 
     @objc func showContextMenu() {
         let menu = NSMenu()

@@ -8,6 +8,10 @@ struct MirrorView: View {
     var body: some View {
         ZStack {
             frameContent
+                // When locked, make the image area not respond to clicks
+                // but buttons in overlay will still work
+                .allowsHitTesting(!viewModel.isLocked)
+
             if showControls { controlsOverlay }
         }
         .onHover { showControls = $0 }
