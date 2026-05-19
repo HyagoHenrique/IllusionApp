@@ -20,6 +20,7 @@ final class MirrorViewModel: ObservableObject {
     var onClickThroughChange: (@MainActor (Bool) -> Void)?
     var onLockedChange: (@MainActor (Bool) -> Void)?
     var onOpacityChange: (@MainActor (Double) -> Void)?
+    var onFrameReceived: (@MainActor (CGImage) -> Void)?
 
     private let captureManager = ScreenCaptureManager()
     private var frameTask: Task<Void, Never>?
@@ -80,6 +81,7 @@ final class MirrorViewModel: ObservableObject {
             for await image in captureManager.frameStream {
                 guard !Task.isCancelled else { break }
                 self.currentFrame = image
+                self.onFrameReceived?(image)
             }
         }
     }

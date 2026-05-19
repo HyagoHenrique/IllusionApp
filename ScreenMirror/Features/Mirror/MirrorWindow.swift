@@ -9,7 +9,6 @@ final class MirrorWindow: NSWindow {
 
     let viewModel: MirrorViewModel
     private var displayView: ImageDisplayView?
-    private var frameObservationTask: Task<Void, Never>?
 
     init(viewModel: MirrorViewModel) {
         self.viewModel = viewModel
@@ -52,24 +51,9 @@ final class MirrorWindow: NSWindow {
         displayView.layer?.cornerRadius = 8
         displayView.layer?.masksToBounds = true
 
-        // Observe frame updates only when they change (no flicker)
-        startObservingFrames()
-    }
-
-    private func startObservingFrames() {
-        frameObservationTask?.cancel()
-        frameObservationTask = Task {
-            var lastFrame: CGImage? = nil
-            while !Task.isCancelled {
-                let currentFrame = viewModel.currentFrame
-                if currentFrame !== lastFrame {
-                    lastFrame = currentFrame
-                    if let frame = currentFrame {
-                        displayView?.updateImage(frame)
-                    }
-                }
-                try? await Task.sleep(nanoseconds: 16_666_667) // ~60 FPS check rate
-            }
+        // Update display when frames arrive (no polling, no flicker)
+        viewModel.onFrameReceived = { [weak self] frame in
+            self?.displayView?.updateImage(frame)
         }
     }
 
@@ -80,6 +64,8 @@ final class MirrorWindow: NSWindow {
 
         viewModel.onLockedChange = { @MainActor [weak self] locked in
             self?.isMovableByWindowBackground = !locked
+            // When locked, pass left-clicks through to windows behind
+            self?.ignoresMouseEvents = locked
         }
 
         viewModel.onOpacityChange = { @MainActor [weak self] opacity in
@@ -193,22 +179,6 @@ final class ImageDisplayView: NSView {
     override func rightMouseDown(with event: NSEvent) {
         // Right-click always shows context menu
         mirrorWindow?.showContextMenu()
-    }
-
-    override func mouseDown(with event: NSEvent) {
-        // Left-click passthrough when locked
-        guard let window = mirrorWindow else { return }
-
-        if window.viewModel.isLocked {
-            // Pass click through to window behind
-            super.mouseDown(with: event)
-            if let nextResponder = self.nextResponder {
-                nextResponder.mouseDown(with: event)
-            }
-        } else {
-            // Normal click handling when unlocked
-            super.mouseDown(with: event)
-        }
     }
 }
 
