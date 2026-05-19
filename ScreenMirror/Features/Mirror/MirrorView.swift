@@ -69,6 +69,19 @@ struct MirrorView: View {
         VStack {
             Spacer()
             HStack(spacing: 12) {
+                // Opacity button
+                Menu {
+                    ForEach([1.0, 0.75, 0.5, 0.25, 0.1], id: \.self) { opacity in
+                        Button("\(Int(opacity * 100))%") {
+                            viewModel.opacity = opacity
+                        }
+                    }
+                } label: {
+                    Image(systemName: "eye.fill")
+                        .frame(width: 28, height: 28)
+                }
+                .help("Adjust opacity")
+
                 // Lock/Unlock button
                 Button {
                     viewModel.isLocked.toggle()
