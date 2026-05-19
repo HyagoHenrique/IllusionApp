@@ -16,6 +16,44 @@ A macOS app that mirrors any region of your screen into a floating, always-on-to
 - macOS 14 Sonoma or later
 - Screen Recording permission (the system will prompt on first launch)
 
+## Install (pre-built release)
+
+1. Download `IllusionApp-vX.Y.Z.zip` from the [Releases page](https://github.com/HyagoHenrique/IllusionApp/releases)
+2. Unzip and move `IllusionApp.app` to `/Applications`
+3. Authorize Gatekeeper (see below) — required because the release builds are unsigned
+4. Grant **Screen Recording** permission when prompted (System Settings → Privacy & Security → Screen Recording)
+
+### Gatekeeper / "app is damaged or can't be opened"
+
+The release builds are **unsigned** (ad-hoc signature only) because notarization requires a paid Apple Developer account. macOS will block the app on first launch with one of these messages:
+
+- *"IllusionApp" cannot be opened because the developer cannot be verified*
+- *"IllusionApp" is damaged and can't be opened*
+
+**To authorize the app:**
+
+**Option A — Right-click → Open (easiest)**
+1. In Finder, right-click (or Control-click) on `IllusionApp.app`
+2. Choose **Open**
+3. Click **Open** in the warning dialog
+4. macOS remembers the choice; future launches work normally
+
+**Option B — System Settings**
+1. Try to open the app once (macOS will block it)
+2. Open **System Settings → Privacy & Security**
+3. Scroll down to the *Security* section — there will be a message about IllusionApp being blocked
+4. Click **Open Anyway**
+5. Confirm with your password
+
+**Option C — Terminal (if you see "is damaged")**
+The "damaged" message appears because of the quarantine attribute set when downloading from the browser. Remove it:
+```bash
+xattr -dr com.apple.quarantine /Applications/IllusionApp.app
+```
+Then open the app normally.
+
+> **Why unsigned?** Notarizing requires Apple's Developer Program ($99/year). If you want a notarized build, clone the repo and build it yourself in Xcode with your own signing identity.
+
 ## Building
 
 1. Open `IllusionApp.xcodeproj` in Xcode 15+
