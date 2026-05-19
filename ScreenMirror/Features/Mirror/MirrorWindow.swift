@@ -1,10 +1,15 @@
 import AppKit
 import SwiftUI
+import AVFoundation
+import Foundation
+import ObjectiveC
 
 @MainActor
 final class MirrorWindow: NSWindow {
 
-    private let viewModel: MirrorViewModel
+    let viewModel: MirrorViewModel
+    private var displayView: ImageDisplayView?
+    private var frameObservationTask: Task<Void, Never>?
 
     init(viewModel: MirrorViewModel) {
         self.viewModel = viewModel
@@ -36,20 +41,36 @@ final class MirrorWindow: NSWindow {
     }
 
     private func attachContent() {
-        let mirrorView = MirrorView(viewModel: viewModel)
-        let host = NSHostingView(rootView: mirrorView)
-        contentView = host
+        // Use AppKit directly instead of SwiftUI to avoid weak reference overhead
+        let displayView = ImageDisplayView(frame: .zero)
+        displayView.mirrorWindow = self
+        self.displayView = displayView
+        contentView = displayView
 
-        // Rounded corners on the host layer
-        host.wantsLayer = true
-        host.layer?.cornerRadius = 8
-        host.layer?.masksToBounds = true
+        // Rounded corners on the display layer
+        displayView.wantsLayer = true
+        displayView.layer?.cornerRadius = 8
+        displayView.layer?.masksToBounds = true
 
-        // Add right-click gesture recognizer for context menu
-        // (Must be done after contentView is set)
-        let rightClickGestureRecognizer = NSClickGestureRecognizer(target: self, action: #selector(showContextMenu))
-        rightClickGestureRecognizer.numberOfClicksRequired = 1
-        host.addGestureRecognizer(rightClickGestureRecognizer)
+        // Observe frame updates only when they change (no flicker)
+        startObservingFrames()
+    }
+
+    private func startObservingFrames() {
+        frameObservationTask?.cancel()
+        frameObservationTask = Task {
+            var lastFrame: CGImage? = nil
+            while !Task.isCancelled {
+                let currentFrame = viewModel.currentFrame
+                if currentFrame !== lastFrame {
+                    lastFrame = currentFrame
+                    if let frame = currentFrame {
+                        displayView?.updateImage(frame)
+                    }
+                }
+                try? await Task.sleep(nanoseconds: 16_666_667) // ~60 FPS check rate
+            }
+        }
     }
 
     private func observeClickThrough() {
@@ -66,7 +87,7 @@ final class MirrorWindow: NSWindow {
         }
     }
 
-    @objc private func showContextMenu() {
+    @objc func showContextMenu() {
         let menu = NSMenu()
 
         // Lock/Unlock option
@@ -111,6 +132,84 @@ final class MirrorWindow: NSWindow {
     // Allow the window to become key so controls respond to clicks.
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { true }
+}
+
+// MARK: - Image Display View
+
+@MainActor
+final class ImageDisplayView: NSView {
+    private var currentImage: CGImage?
+    weak var mirrorWindow: MirrorWindow?
+
+    override init(frame: NSRect) {
+        super.init(frame: frame)
+        setupLayer()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupLayer()
+    }
+
+    private func setupLayer() {
+        // Use CALayer directly for simple image display - no SwiftUI overhead
+        wantsLayer = true
+        layer?.backgroundColor = NSColor.black.cgColor
+        layer?.isOpaque = true
+    }
+
+    func updateImage(_ image: CGImage) {
+        self.currentImage = image
+        // Draw directly on the layer
+        DispatchQueue.main.async { [weak self] in
+            self?.layer?.contents = image
+            self?.setNeedsDisplay(self?.bounds ?? .zero)
+        }
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+
+        guard let image = currentImage else {
+            NSColor.black.setFill()
+            dirtyRect.fill()
+            return
+        }
+
+        // Draw image to fill the view
+        let context = NSGraphicsContext.current
+        context?.imageInterpolation = .high
+
+        let imageRect = NSRect(origin: .zero, size: CGSize(width: image.width, height: image.height))
+        let viewRect = self.bounds
+        let scaledRect = AVMakeRect(aspectRatio: imageRect.size, insideRect: viewRect)
+
+        let nsImage = NSImage(cgImage: image, size: NSZeroSize)
+        nsImage.draw(in: scaledRect)
+    }
+
+    // MARK: - Mouse Events
+
+    override func rightMouseDown(with event: NSEvent) {
+        // Right-click always shows context menu
+        mirrorWindow?.showContextMenu()
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        // Left-click passthrough when locked
+        guard let window = mirrorWindow else { return }
+
+        if window.viewModel.isLocked {
+            // Pass click through to window behind
+            super.mouseDown(with: event)
+            if let nextResponder = self.nextResponder {
+                nextResponder.mouseDown(with: event)
+            }
+        } else {
+            // Normal click handling when unlocked
+            super.mouseDown(with: event)
+        }
+    }
 }
 
 // MARK: - Controller

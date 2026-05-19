@@ -134,11 +134,11 @@ final class ScreenCaptureManager: NSObject, ObservableObject {
             .toPhysicalPixels(backingScaleFactor: scaleFactor)
 
         config.sourceRect = physicalRect
-        // Optimize for multiple concurrent captures: use 50% resolution
-        config.width = Int(physicalRect.width / 2)
-        config.height = Int(physicalRect.height / 2)
-        // Reduce frame rate from 60 to 30 FPS to conserve resources
-        config.minimumFrameInterval = CMTime(value: 1, timescale: 30)
+        // Full resolution - AppKit rendering handles it efficiently
+        config.width = Int(physicalRect.width)
+        config.height = Int(physicalRect.height)
+        // 60 FPS for smooth playback
+        config.minimumFrameInterval = CMTime(value: 1, timescale: 60)
         config.pixelFormat = kCVPixelFormatType_32BGRA
         config.showsCursor = false
         config.capturesAudio = false

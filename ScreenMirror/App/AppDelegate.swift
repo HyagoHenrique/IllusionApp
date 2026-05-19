@@ -41,8 +41,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        // Limit concurrent captures to 6 (optimized with 30 FPS and 50% resolution)
-        let maxConcurrentCaptures = 6
+        // Limit concurrent captures to 3 (system limitation with multiple concurrent screen captures)
+        let maxConcurrentCaptures = 3
         guard mirrorWindowControllers.count < maxConcurrentCaptures else {
             print("[AppDelegate] ERROR: Maximum \(maxConcurrentCaptures) concurrent mirrors allowed")
             showAlert(
