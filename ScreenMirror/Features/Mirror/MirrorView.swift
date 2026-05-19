@@ -4,6 +4,8 @@ import SwiftUI
 struct MirrorView: View {
     @ObservedObject var viewModel: MirrorViewModel
     @State private var showControls = false
+    @State private var lockPressProgress: Double = 0.0
+    @State private var lockPressTimer: Timer?
 
     var body: some View {
         ZStack {
@@ -69,7 +71,7 @@ struct MirrorView: View {
         VStack {
             Spacer()
             HStack(spacing: 12) {
-                // Opacity button
+                // Opacity button (disabled when locked)
                 Menu {
                     ForEach([1.0, 0.75, 0.5, 0.25, 0.1], id: \.self) { opacity in
                         Button("\(Int(opacity * 100))%") {
@@ -81,16 +83,43 @@ struct MirrorView: View {
                         .frame(width: 28, height: 28)
                 }
                 .help("Adjust opacity")
+                .disabled(viewModel.isLocked)
+                .opacity(viewModel.isLocked ? 0.5 : 1.0)
 
-                // Lock/Unlock button
-                Button {
-                    viewModel.isLocked.toggle()
-                } label: {
-                    Image(systemName: viewModel.isLocked ? "lock.fill" : "lock.open.fill")
-                        .frame(width: 28, height: 28)
+                // Lock/Unlock button with press animation
+                ZStack {
+                    // Progress background
+                    Circle()
+                        .fill(Color.green)
+                        .opacity(lockPressProgress * 0.6)
+
+                    // Button
+                    Button {
+                        if !viewModel.isLocked {
+                            startLockPress()
+                        }
+                    } label: {
+                        Image(systemName: viewModel.isLocked ? "lock.fill" : "lock.open.fill")
+                            .frame(width: 28, height: 28)
+                    }
+                    .help(viewModel.isLocked ? "Hold 2s to unlock" : "Hold 2s to lock")
                 }
-                .help(viewModel.isLocked ? "Click to unlock window" : "Click to lock window")
+                .frame(width: 28, height: 28)
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { _ in
+                            if !viewModel.isLocked {
+                                if lockPressTimer == nil {
+                                    startLockPress()
+                                }
+                            }
+                        }
+                        .onEnded { _ in
+                            cancelLockPress()
+                        }
+                )
 
+                // Close button (disabled when locked)
                 Button {
                     Task { @MainActor in
                         await viewModel.stopMirroring()
@@ -101,6 +130,8 @@ struct MirrorView: View {
                         .frame(width: 28, height: 28)
                 }
                 .help("Close mirror")
+                .disabled(viewModel.isLocked)
+                .opacity(viewModel.isLocked ? 0.5 : 1.0)
             }
             .buttonStyle(.plain)
             .foregroundStyle(.white)
@@ -110,5 +141,28 @@ struct MirrorView: View {
         }
         .transition(.opacity)
         .animation(.easeInOut(duration: 0.15), value: showControls)
+    }
+
+    private func startLockPress() {
+        lockPressProgress = 0.0
+        lockPressTimer = Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { _ in
+            Task { @MainActor in
+                lockPressProgress += 0.02 / 2.0  // 2 seconds total
+
+                if lockPressProgress >= 1.0 {
+                    lockPressProgress = 1.0
+                    cancelLockPress()
+                    viewModel.isLocked.toggle()
+                }
+            }
+        }
+    }
+
+    private func cancelLockPress() {
+        lockPressTimer?.invalidate()
+        lockPressTimer = nil
+        withAnimation {
+            lockPressProgress = 0.0
+        }
     }
 }
