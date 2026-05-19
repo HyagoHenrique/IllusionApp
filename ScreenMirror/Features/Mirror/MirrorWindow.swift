@@ -59,27 +59,17 @@ final class MirrorWindow: NSWindow {
         controlBar.layer?.backgroundColor = NSColor(white: 0.2, alpha: 0.9).cgColor
         containerView.addSubview(controlBar)
 
-        // Lock button
-        let lockButton = NSButton()
-        lockButton.title = "🔓"
-        lockButton.bezelStyle = .rounded
-        lockButton.font = NSFont.systemFont(ofSize: 16)
-        lockButton.target = self
-        lockButton.action = #selector(handleLockButtonPress)
-        controlBar.addSubview(lockButton)
+        // Toggle Lock/Unlock button (shows current state)
+        let toggleButton = NSButton()
+        toggleButton.title = "🔓"  // Start with unlock icon
+        toggleButton.bezelStyle = .rounded
+        toggleButton.font = NSFont.systemFont(ofSize: 16)
+        toggleButton.target = self
+        toggleButton.action = #selector(handleToggleLockPress)
+        controlBar.addSubview(toggleButton)
 
-        // Unlock button
-        let unlockButton = NSButton()
-        unlockButton.title = "🔒"
-        unlockButton.bezelStyle = .rounded
-        unlockButton.font = NSFont.systemFont(ofSize: 16)
-        unlockButton.target = self
-        unlockButton.action = #selector(handleUnlockButtonPress)
-        controlBar.addSubview(unlockButton)
-
-        // Layout buttons
-        lockButton.translatesAutoresizingMaskIntoConstraints = false
-        unlockButton.translatesAutoresizingMaskIntoConstraints = false
+        // Layout button
+        toggleButton.translatesAutoresizingMaskIntoConstraints = false
         controlBar.translatesAutoresizingMaskIntoConstraints = false
         displayView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -96,21 +86,21 @@ final class MirrorWindow: NSWindow {
             displayView.topAnchor.constraint(equalTo: containerView.topAnchor),
             displayView.bottomAnchor.constraint(equalTo: controlBar.topAnchor),
 
-            // Button layout
-            lockButton.leftAnchor.constraint(equalTo: controlBar.leftAnchor, constant: 8),
-            lockButton.centerYAnchor.constraint(equalTo: controlBar.centerYAnchor),
-            lockButton.widthAnchor.constraint(equalToConstant: 40),
-            lockButton.heightAnchor.constraint(equalToConstant: 40),
-
-            unlockButton.leftAnchor.constraint(equalTo: lockButton.rightAnchor, constant: 8),
-            unlockButton.centerYAnchor.constraint(equalTo: controlBar.centerYAnchor),
-            unlockButton.widthAnchor.constraint(equalToConstant: 40),
-            unlockButton.heightAnchor.constraint(equalToConstant: 40),
+            // Button layout - centered
+            toggleButton.centerXAnchor.constraint(equalTo: controlBar.centerXAnchor),
+            toggleButton.centerYAnchor.constraint(equalTo: controlBar.centerYAnchor),
+            toggleButton.widthAnchor.constraint(equalToConstant: 50),
+            toggleButton.heightAnchor.constraint(equalToConstant: 50),
         ])
 
         // Store references for updates
-        objc_setAssociatedObject(self, "lockButton", lockButton, .OBJC_ASSOCIATION_RETAIN)
-        objc_setAssociatedObject(self, "unlockButton", unlockButton, .OBJC_ASSOCIATION_RETAIN)
+        objc_setAssociatedObject(self, "toggleButton", toggleButton, .OBJC_ASSOCIATION_RETAIN)
+
+        // Update button icon when lock state changes
+        viewModel.onLockedChange = { @MainActor [weak self] locked in
+            guard let toggleButton = objc_getAssociatedObject(self, "toggleButton") as? NSButton else { return }
+            toggleButton.title = locked ? "🔒" : "🔓"
+        }
 
         // Rounded corners on container
         containerView.wantsLayer = true
@@ -123,28 +113,15 @@ final class MirrorWindow: NSWindow {
         }
     }
 
-    private var lockButtonPressTimer: Timer?
-    private var unlockButtonPressTimer: Timer?
+    private var toggleButtonPressTimer: Timer?
 
-    @objc private func handleLockButtonPress() {
-        // Start timer on first press, complete lock after 2s
-        if lockButtonPressTimer == nil {
-            lockButtonPressTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
+    @objc private func handleToggleLockPress() {
+        // Start timer on first press, toggle lock after 2s
+        if toggleButtonPressTimer == nil {
+            toggleButtonPressTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
                 Task { @MainActor in
-                    self?.viewModel.isLocked = true
-                    self?.lockButtonPressTimer = nil
-                }
-            }
-        }
-    }
-
-    @objc private func handleUnlockButtonPress() {
-        // Start timer on first press, complete unlock after 2s
-        if unlockButtonPressTimer == nil {
-            unlockButtonPressTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
-                Task { @MainActor in
-                    self?.viewModel.isLocked = false
-                    self?.unlockButtonPressTimer = nil
+                    self?.viewModel.isLocked.toggle()
+                    self?.toggleButtonPressTimer = nil
                 }
             }
         }
