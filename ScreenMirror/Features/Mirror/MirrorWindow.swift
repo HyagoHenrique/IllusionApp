@@ -41,20 +41,112 @@ final class MirrorWindow: NSWindow {
     }
 
     private func attachContent() {
+        // Create container for display + controls
+        let containerView = NSView()
+        contentView = containerView
+        containerView.wantsLayer = true
+        containerView.layer?.backgroundColor = NSColor.black.cgColor
+
         // Use AppKit directly instead of SwiftUI to avoid weak reference overhead
         let displayView = ImageDisplayView(frame: .zero)
         displayView.mirrorWindow = self
         self.displayView = displayView
-        contentView = displayView
+        containerView.addSubview(displayView)
 
-        // Rounded corners on the display layer
-        displayView.wantsLayer = true
-        displayView.layer?.cornerRadius = 8
-        displayView.layer?.masksToBounds = true
+        // Create control bar at bottom
+        let controlBar = NSView()
+        controlBar.wantsLayer = true
+        controlBar.layer?.backgroundColor = NSColor(white: 0.2, alpha: 0.9).cgColor
+        containerView.addSubview(controlBar)
+
+        // Lock button
+        let lockButton = NSButton()
+        lockButton.title = "🔓"
+        lockButton.bezelStyle = .rounded
+        lockButton.font = NSFont.systemFont(ofSize: 16)
+        lockButton.target = self
+        lockButton.action = #selector(handleLockButtonPress)
+        controlBar.addSubview(lockButton)
+
+        // Unlock button
+        let unlockButton = NSButton()
+        unlockButton.title = "🔒"
+        unlockButton.bezelStyle = .rounded
+        unlockButton.font = NSFont.systemFont(ofSize: 16)
+        unlockButton.target = self
+        unlockButton.action = #selector(handleUnlockButtonPress)
+        controlBar.addSubview(unlockButton)
+
+        // Layout buttons
+        lockButton.translatesAutoresizingMaskIntoConstraints = false
+        unlockButton.translatesAutoresizingMaskIntoConstraints = false
+        controlBar.translatesAutoresizingMaskIntoConstraints = false
+        displayView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            // Control bar at bottom, full width, 50 points height
+            controlBar.leftAnchor.constraint(equalTo: containerView.leftAnchor),
+            controlBar.rightAnchor.constraint(equalTo: containerView.rightAnchor),
+            controlBar.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+            controlBar.heightAnchor.constraint(equalToConstant: 50),
+
+            // Display view takes rest of space
+            displayView.leftAnchor.constraint(equalTo: containerView.leftAnchor),
+            displayView.rightAnchor.constraint(equalTo: containerView.rightAnchor),
+            displayView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            displayView.bottomAnchor.constraint(equalTo: controlBar.topAnchor),
+
+            // Button layout
+            lockButton.leftAnchor.constraint(equalTo: controlBar.leftAnchor, constant: 8),
+            lockButton.centerYAnchor.constraint(equalTo: controlBar.centerYAnchor),
+            lockButton.widthAnchor.constraint(equalToConstant: 40),
+            lockButton.heightAnchor.constraint(equalToConstant: 40),
+
+            unlockButton.leftAnchor.constraint(equalTo: lockButton.rightAnchor, constant: 8),
+            unlockButton.centerYAnchor.constraint(equalTo: controlBar.centerYAnchor),
+            unlockButton.widthAnchor.constraint(equalToConstant: 40),
+            unlockButton.heightAnchor.constraint(equalToConstant: 40),
+        ])
+
+        // Store references for updates
+        objc_setAssociatedObject(self, "lockButton", lockButton, .OBJC_ASSOCIATION_RETAIN)
+        objc_setAssociatedObject(self, "unlockButton", unlockButton, .OBJC_ASSOCIATION_RETAIN)
+
+        // Rounded corners on container
+        containerView.wantsLayer = true
+        containerView.layer?.cornerRadius = 8
+        containerView.layer?.masksToBounds = true
 
         // Update display when frames arrive (no polling, no flicker)
         viewModel.onFrameReceived = { [weak self] frame in
             self?.displayView?.updateImage(frame)
+        }
+    }
+
+    private var lockButtonPressTimer: Timer?
+    private var unlockButtonPressTimer: Timer?
+
+    @objc private func handleLockButtonPress() {
+        // Start timer on first press, complete lock after 2s
+        if lockButtonPressTimer == nil {
+            lockButtonPressTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
+                Task { @MainActor in
+                    self?.viewModel.isLocked = true
+                    self?.lockButtonPressTimer = nil
+                }
+            }
+        }
+    }
+
+    @objc private func handleUnlockButtonPress() {
+        // Start timer on first press, complete unlock after 2s
+        if unlockButtonPressTimer == nil {
+            unlockButtonPressTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
+                Task { @MainActor in
+                    self?.viewModel.isLocked = false
+                    self?.unlockButtonPressTimer = nil
+                }
+            }
         }
     }
 
