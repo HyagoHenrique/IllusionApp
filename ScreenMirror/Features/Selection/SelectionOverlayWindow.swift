@@ -21,6 +21,7 @@ final class SelectionOverlayWindow: NSWindow {
         isOpaque = false
         backgroundColor = .clear
         ignoresMouseEvents = false
+        isReleasedWhenClosed = false
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
     }
 

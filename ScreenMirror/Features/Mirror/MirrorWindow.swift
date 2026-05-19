@@ -29,6 +29,7 @@ final class MirrorWindow: NSWindow {
         backgroundColor = .clear
         hasShadow = true
         isMovableByWindowBackground = true  // drag anywhere on the content
+        isReleasedWhenClosed = false
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         minSize = NSSize(width: 100, height: 80)
 
@@ -55,13 +56,12 @@ final class MirrorWindow: NSWindow {
         viewModel.onLockedChange = { @MainActor [weak self] locked in
             guard let self else { return }
             self.isMovableByWindowBackground = !locked
+            // When locked: clicks pass through window entirely
+            self.ignoresMouseEvents = locked
 
-            // When locked: block resize
             if locked {
-                // Block resizing when locked
                 self.styleMask.remove(.resizable)
             } else {
-                // Allow resizing when unlocked
                 self.styleMask.insert(.resizable)
             }
         }

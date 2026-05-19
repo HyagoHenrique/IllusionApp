@@ -4,19 +4,17 @@ import SwiftUI
 struct MirrorView: View {
     @ObservedObject var viewModel: MirrorViewModel
     @State private var showControls = false
-    @State private var lockPressProgress: Double = 0.0
-    @State private var lockPressTimer: Timer?
 
     var body: some View {
         ZStack {
             frameContent
-                // When locked, make the image area not respond to clicks
-                // but buttons in overlay will still work
                 .allowsHitTesting(!viewModel.isLocked)
 
-            if showControls { controlsOverlay }
+            if showControls && !viewModel.isLocked { controlsOverlay }
         }
-        .onHover { showControls = $0 }
+        .onHover { hovering in
+            showControls = hovering && !viewModel.isLocked
+        }
         .ignoresSafeArea()
     }
 
@@ -71,7 +69,7 @@ struct MirrorView: View {
         VStack {
             Spacer()
             HStack(spacing: 12) {
-                // Opacity button (disabled when locked)
+                // Opacity button
                 Menu {
                     ForEach([1.0, 0.75, 0.5, 0.25, 0.1], id: \.self) { opacity in
                         Button("\(Int(opacity * 100))%") {
@@ -83,43 +81,17 @@ struct MirrorView: View {
                         .frame(width: 28, height: 28)
                 }
                 .help("Adjust opacity")
-                .disabled(viewModel.isLocked)
-                .opacity(viewModel.isLocked ? 0.5 : 1.0)
 
-                // Lock/Unlock button with press animation
-                ZStack {
-                    // Progress background
-                    Circle()
-                        .fill(Color.green)
-                        .opacity(lockPressProgress * 0.6)
-
-                    // Button
-                    Button {
-                        if !viewModel.isLocked {
-                            startLockPress()
-                        }
-                    } label: {
-                        Image(systemName: viewModel.isLocked ? "lock.fill" : "lock.open.fill")
-                            .frame(width: 28, height: 28)
-                    }
-                    .help(viewModel.isLocked ? "Hold 2s to unlock" : "Hold 2s to lock")
+                // Lock button (click to lock)
+                Button {
+                    viewModel.isLocked = true
+                } label: {
+                    Image(systemName: "lock.open.fill")
+                        .frame(width: 28, height: 28)
                 }
-                .frame(width: 28, height: 28)
-                .gesture(
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { _ in
-                            if !viewModel.isLocked {
-                                if lockPressTimer == nil {
-                                    startLockPress()
-                                }
-                            }
-                        }
-                        .onEnded { _ in
-                            cancelLockPress()
-                        }
-                )
+                .help("Click to lock")
 
-                // Close button (disabled when locked)
+                // Close button
                 Button {
                     Task { @MainActor in
                         await viewModel.stopMirroring()
@@ -130,8 +102,6 @@ struct MirrorView: View {
                         .frame(width: 28, height: 28)
                 }
                 .help("Close mirror")
-                .disabled(viewModel.isLocked)
-                .opacity(viewModel.isLocked ? 0.5 : 1.0)
             }
             .buttonStyle(.plain)
             .foregroundStyle(.white)
@@ -143,26 +113,4 @@ struct MirrorView: View {
         .animation(.easeInOut(duration: 0.15), value: showControls)
     }
 
-    private func startLockPress() {
-        lockPressProgress = 0.0
-        lockPressTimer = Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { _ in
-            Task { @MainActor in
-                lockPressProgress += 0.02 / 2.0  // 2 seconds total
-
-                if lockPressProgress >= 1.0 {
-                    lockPressProgress = 1.0
-                    cancelLockPress()
-                    viewModel.isLocked.toggle()
-                }
-            }
-        }
-    }
-
-    private func cancelLockPress() {
-        lockPressTimer?.invalidate()
-        lockPressTimer = nil
-        withAnimation {
-            lockPressProgress = 0.0
-        }
-    }
 }

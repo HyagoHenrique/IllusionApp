@@ -23,11 +23,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let menu = NSMenu()
         menu.addItem(withTitle: "Mirror a region…", action: #selector(startSelection), keyEquivalent: "m")
+        menu.addItem(withTitle: "Unlock all screens", action: #selector(unlockAllScreens), keyEquivalent: "u")
         menu.addItem(withTitle: "Stop mirroring", action: #selector(stopMirroring), keyEquivalent: ".")
         menu.addItem(.separator())
         menu.addItem(withTitle: "Quit ScreenMirror", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 
         statusItem?.menu = menu
+    }
+
+    @objc private func unlockAllScreens() {
+        print("[AppDelegate] unlockAllScreens called")
+        for controller in mirrorWindowControllers {
+            controller.viewModel.isLocked = false
+        }
     }
 
     // MARK: - Actions
@@ -42,7 +50,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         // Limit concurrent captures to 3 (system limitation with multiple concurrent screen captures)
-        let maxConcurrentCaptures = 3
+        let maxConcurrentCaptures = 6
         guard mirrorWindowControllers.count < maxConcurrentCaptures else {
             print("[AppDelegate] ERROR: Maximum \(maxConcurrentCaptures) concurrent mirrors allowed")
             showAlert(

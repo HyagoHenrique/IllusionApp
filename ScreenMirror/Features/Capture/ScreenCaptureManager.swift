@@ -129,14 +129,13 @@ final class ScreenCaptureManager: NSObject, ObservableObject {
         }
 
         let scaleFactor = screen.backingScaleFactor
-        let physicalRect = region.rect
-            .toScreenCaptureCoordinates(in: screen)
-            .toPhysicalPixels(backingScaleFactor: scaleFactor)
+        // sourceRect must be in points (display coordinate space), not pixels
+        let sourceRect = region.rect.toScreenCaptureCoordinates(in: screen)
 
-        config.sourceRect = physicalRect
-        // Full resolution - AppKit rendering handles it efficiently
-        config.width = Int(physicalRect.width)
-        config.height = Int(physicalRect.height)
+        config.sourceRect = sourceRect
+        // Output dimensions in physical pixels for full resolution
+        config.width = Int(sourceRect.width * scaleFactor)
+        config.height = Int(sourceRect.height * scaleFactor)
         // 60 FPS for smooth playback
         config.minimumFrameInterval = CMTime(value: 1, timescale: 60)
         config.pixelFormat = kCVPixelFormatType_32BGRA
