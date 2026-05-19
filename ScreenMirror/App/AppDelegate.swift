@@ -33,11 +33,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Actions
 
     @objc private func startSelection() {
-        print("[AppDelegate] startSelection called")
+        print("[AppDelegate] startSelection called, isSelecting=\(isSelecting)")
 
         // Prevent multiple simultaneous selections
         guard !isSelecting else {
-            print("[AppDelegate] Already selecting, ignoring")
+            print("[AppDelegate] ERROR: Already selecting, ignoring")
             return
         }
 
@@ -48,9 +48,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         isSelecting = true
 
-        // Close previous selection window if any
-        if let previousWindow = selectionWindow {
-            previousWindow.close()
+        // Clear previous selection window reference if it exists
+        // (The window closes itself in the onSelection/onCancel callbacks)
+        if selectionWindow != nil {
+            print("[AppDelegate] Clearing reference to previous selection window")
+            selectionWindow = nil
         }
 
         print("[AppDelegate] Creating SelectionOverlayWindow")
