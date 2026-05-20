@@ -21,7 +21,11 @@ A macOS app that mirrors any region of your screen into a floating, always-on-to
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/selection.png" width="520" alt="Region selection"/>
+  <img src="docs/screenshots/selection.png" width="520" alt="Region selection — drag prompt"/>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/selection-active.png" width="520" alt="Region selection — drag in progress"/>
 </p>
 
 <p align="center">
