@@ -24,25 +24,21 @@ final class MirrorWindow: NSWindow {
     // MARK: - Setup
 
     private func configure() {
-        level = .floating                   // always on top
+        level = .floating
         isOpaque = false
         backgroundColor = .clear
         hasShadow = true
-        isMovableByWindowBackground = true  // drag anywhere on the content
+        isMovableByWindowBackground = true
         isReleasedWhenClosed = false
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         minSize = NSSize(width: 100, height: 80)
-
-        // Rounded corners will be set on the host layer in attachContent()
     }
 
     private func attachContent() {
-        // Use SwiftUI for better UX and no flicker
         let mirrorView = MirrorView(viewModel: viewModel)
         let host = NSHostingView(rootView: mirrorView)
         contentView = host
 
-        // Rounded corners on the host layer
         host.wantsLayer = true
         host.layer?.cornerRadius = 8
         host.layer?.masksToBounds = true
@@ -56,7 +52,6 @@ final class MirrorWindow: NSWindow {
         viewModel.onLockedChange = { @MainActor [weak self] locked in
             guard let self else { return }
             self.isMovableByWindowBackground = !locked
-            // When locked: clicks pass through window entirely
             self.ignoresMouseEvents = locked
 
             if locked {
@@ -71,7 +66,6 @@ final class MirrorWindow: NSWindow {
         }
     }
 
-    // Allow the window to become key so controls respond to clicks.
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { true }
 }
@@ -82,19 +76,43 @@ final class MirrorWindow: NSWindow {
 final class MirrorWindowController: NSWindowController {
 
     let viewModel: MirrorViewModel
+    private var controlsWindow: MirrorControlsWindow?
+    nonisolated(unsafe) private var frameObserver: NSObjectProtocol?
 
     init(viewModel: MirrorViewModel) {
         self.viewModel = viewModel
         let window = MirrorWindow(viewModel: viewModel)
         super.init(window: window)
+
+        viewModel.onControlsVisibilityChange = { @MainActor [weak self] visible in
+            self?.toggleControls(visible)
+        }
+        viewModel.requestClose = { @MainActor [weak self] in
+            self?.controlsWindow?.orderOut(nil)
+            self?.window?.close()
+        }
+
+        // Reposition controls window when mirror window moves or resizes
+        frameObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didMoveNotification,
+            object: window,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.repositionControlsIfVisible() }
+        }
     }
 
     required init?(coder: NSCoder) { nil }
 
+    deinit {
+        if let frameObserver {
+            NotificationCenter.default.removeObserver(frameObserver)
+        }
+    }
+
     func show(for region: MirrorRegion) {
         Task { @MainActor in
             await viewModel.startMirroring(region: region)
-            // Size the mirror window to match the aspect ratio of the captured region
             if let window, region.rect != .zero {
                 let ratio = region.rect.width / region.rect.height
                 let currentSize = window.frame.size
@@ -104,5 +122,47 @@ final class MirrorWindowController: NSWindowController {
             showWindow(nil)
             window?.orderFrontRegardless()
         }
+    }
+
+    // MARK: - Controls window management
+
+    private func toggleControls(_ visible: Bool) {
+        if visible {
+            showControls()
+        } else {
+            controlsWindow?.orderOut(nil)
+        }
+    }
+
+    private func showControls() {
+        guard let mirrorWindow = window else { return }
+        if controlsWindow == nil {
+            controlsWindow = MirrorControlsWindow(viewModel: viewModel)
+        }
+        guard let cw = controlsWindow else { return }
+
+        positionControlsWindow(cw, near: mirrorWindow)
+        cw.orderFront(nil)
+    }
+
+    private func repositionControlsIfVisible() {
+        guard let cw = controlsWindow, cw.isVisible, let mirrorWindow = window else { return }
+        positionControlsWindow(cw, near: mirrorWindow)
+    }
+
+    private func positionControlsWindow(_ cw: NSWindow, near mirrorWindow: NSWindow) {
+        let mirrorFrame = mirrorWindow.frame
+        let controlsSize = cw.frame.size
+        let gap: CGFloat = 8
+
+        let x = mirrorFrame.midX - controlsSize.width / 2
+        var y = mirrorFrame.minY - controlsSize.height - gap
+
+        // If the controls would go below the screen, place above the mirror window instead.
+        if let screen = mirrorWindow.screen, y < screen.visibleFrame.minY {
+            y = mirrorFrame.maxY + gap
+        }
+
+        cw.setFrameOrigin(NSPoint(x: x, y: y))
     }
 }

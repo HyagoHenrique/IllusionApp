@@ -1,24 +1,21 @@
 import SwiftUI
+import AppKit
 
 @MainActor
 struct MirrorView: View {
     @ObservedObject var viewModel: MirrorViewModel
-    @State private var showControls = false
+    @ObservedObject private var loc = LocalizationManager.shared
 
     var body: some View {
         ZStack {
             frameContent
                 .allowsHitTesting(!viewModel.isLocked)
-
-            if showControls && !viewModel.isLocked { controlsOverlay }
         }
         .onHover { hovering in
-            showControls = hovering && !viewModel.isLocked
+            viewModel.isHoveringMirror = hovering && !viewModel.isLocked
         }
         .ignoresSafeArea()
     }
-
-    // MARK: - Sub-views
 
     @ViewBuilder
     private var frameContent: some View {
@@ -49,7 +46,7 @@ struct MirrorView: View {
                             .padding(.horizontal, 16)
 
                         if error.contains("permission") || error.contains("declined") {
-                            Button("Open Privacy Settings") {
+                            Button(AppStrings.Mirror.openPrivacySettings(loc.language)) {
                                 viewModel.openPrivacySettings()
                             }
                             .buttonStyle(.bordered)
@@ -57,60 +54,11 @@ struct MirrorView: View {
                         }
                     }
                 } else {
-                    Text("No region selected")
+                    Text(AppStrings.Mirror.noRegionSelected(loc.language))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
         }
     }
-
-    private var controlsOverlay: some View {
-        VStack {
-            Spacer()
-            HStack(spacing: 12) {
-                // Opacity button
-                Menu {
-                    ForEach([1.0, 0.75, 0.5, 0.25, 0.1], id: \.self) { opacity in
-                        Button("\(Int(opacity * 100))%") {
-                            viewModel.opacity = opacity
-                        }
-                    }
-                } label: {
-                    Image(systemName: "eye.fill")
-                        .frame(width: 28, height: 28)
-                }
-                .help("Adjust opacity")
-
-                // Lock button (click to lock)
-                Button {
-                    viewModel.isLocked = true
-                } label: {
-                    Image(systemName: "lock.open.fill")
-                        .frame(width: 28, height: 28)
-                }
-                .help("Click to lock")
-
-                // Close button
-                Button {
-                    Task { @MainActor in
-                        await viewModel.stopMirroring()
-                        NSApplication.shared.keyWindow?.close()
-                    }
-                } label: {
-                    Image(systemName: "xmark")
-                        .frame(width: 28, height: 28)
-                }
-                .help("Close mirror")
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.white)
-            .padding(8)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
-            .padding(.bottom, 12)
-        }
-        .transition(.opacity)
-        .animation(.easeInOut(duration: 0.15), value: showControls)
-    }
-
 }

@@ -5,6 +5,8 @@ struct SelectionView: View {
     let onSelection: @MainActor (CGRect) -> Void
     let onCancel: @MainActor () -> Void
 
+    @ObservedObject private var loc = LocalizationManager.shared
+
     @State private var startPoint: CGPoint?
     @State private var currentPoint: CGPoint?
     @State private var isDragging = false
@@ -49,9 +51,9 @@ struct SelectionView: View {
 
                 if !isDragging {
                     VStack(spacing: 8) {
-                        Text("Drag to select a region to mirror")
+                        Text(AppStrings.Selection.dragToSelect(loc.language))
                             .font(.system(size: 14, weight: .medium))
-                        Text("Press Esc to cancel")
+                        Text(AppStrings.Selection.pressEscToCancel(loc.language))
                             .font(.system(size: 12))
                             .foregroundStyle(.secondary)
                     }
@@ -76,10 +78,6 @@ struct SelectionView: View {
                         reset()
                     }
             )
-            .onKeyPress(.escape) {
-                onCancel()
-                return .handled
-            }
             .onHover { inside in
                 if inside {
                     NSCursor.crosshair.push()

@@ -70,4 +70,15 @@ final class SelectionOverlayWindow: NSWindow {
 
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { true }
+
+    override func keyDown(with event: NSEvent) {
+        guard event.keyCode == 53 else { // 53 = Escape
+            super.keyDown(with: event)
+            return
+        }
+        DispatchQueue.main.async { [weak self] in
+            self?.close()
+            self?.onCancel?()
+        }
+    }
 }

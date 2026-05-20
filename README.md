@@ -1,14 +1,47 @@
 # IllusionApp
 
+<p align="center">
+  <img src="IllusionApp/Resources/illusion-icon.svg" width="120" alt="IllusionApp icon"/>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/github/v/release/HyagoHenrique/IllusionApp?style=flat-square&label=release&color=4a6cf7" alt="Latest release"/>
+  <img src="https://img.shields.io/badge/platform-macOS-4a6cf7?style=flat-square" alt="Platform: macOS"/>
+  <img src="https://img.shields.io/badge/license-MIT-4a6cf7?style=flat-square" alt="License: MIT"/>
+</p>
+
 A macOS app that mirrors any region of your screen into a floating, always-on-top window.
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/menubar.png" width="260" alt="Menu bar"/>
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/settings.png" width="260" alt="Settings"/>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/selection.png" width="520" alt="Region selection"/>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/mirror-window.png" width="520" alt="Mirror window floating"/>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/controls.png" width="520" alt="Floating controls panel"/>
+</p>
 
 ## Features
 
-- **Region selection** — drag to pick any area of the screen
+- **Region selection** — drag to pick any area of the screen, ESC to cancel
 - **Floating mirror window** — stays above all other apps, freely positionable and resizable
+- **Floating controls panel** — appears below the mirror window on hover with opacity, lock, and close buttons
 - **Multiple mirrors** — up to 6 simultaneous mirror windows
 - **Opacity control** — 10% / 25% / 50% / 75% / 100%
 - **Lock mode** — locks position/size and makes clicks pass through. Unlock all via menu bar (⌘U)
+- **Localization** — English, Português (BR), Español — switchable in Settings
+- **Settings window** — language selector and About section (version, GitHub link)
 - **60 fps capture** — powered by ScreenCaptureKit's SCStream
 
 ## Requirements
@@ -67,34 +100,43 @@ Then open the app normally.
 
 1. Click the **rectangle-on-rectangle** icon in the menu bar
 2. Choose **Mirror a region…** (`⌘M`)
-3. Drag to select the area you want to mirror
+3. Drag to select the area you want to mirror (ESC cancels)
 4. The mirror window appears — drag it anywhere, resize freely
-5. Hover the mirror to reveal controls:
-   - **Eye** — opacity
+5. Hover the mirror to reveal the **floating controls panel** below it:
+   - **Eye** — opacity (10% / 25% / 50% / 75% / 100%)
    - **Open lock** — lock the window (clicks pass through, position frozen)
    - **✕** — close the mirror
 6. To unlock all locked mirrors: menu bar → **Unlock all screens** (`⌘U`)
+7. Change app language and view About info: menu bar → **Settings** (`⌘,`)
 
 ## Architecture
 
 ```
 IllusionApp/
 ├── App/
-│   ├── IllusionApp.swift        Entry point, connects AppDelegate
-│   └── AppDelegate.swift            Status bar, orchestrates selection → mirror flow
+│   ├── IllusionApp.swift               Entry point, connects AppDelegate
+│   └── AppDelegate.swift               Status bar, orchestrates selection → mirror flow
 ├── Features/
 │   ├── Selection/
-│   │   ├── SelectionOverlayWindow   Fullscreen NSWindow for the drag-select UI
-│   │   └── SelectionView            SwiftUI drag gesture + visual feedback
+│   │   ├── SelectionOverlayWindow      Fullscreen NSWindow for drag-select UI, ESC handling
+│   │   └── SelectionView               SwiftUI drag gesture + visual feedback
 │   ├── Mirror/
-│   │   ├── MirrorWindow             NSWindow subclass (floating level, click-through)
-│   │   ├── MirrorView               Renders frames + hover controls
-│   │   └── MirrorViewModel          Drives capture lifecycle, CMSampleBuffer → CGImage
-│   └── Capture/
-│       └── ScreenCaptureManager     SCStream wrapper, publishes frames as AsyncStream
+│   │   ├── MirrorWindow                NSWindow subclass (floating, transparent, resizable)
+│   │   ├── MirrorView                  Renders captured frames + hover tracking
+│   │   ├── MirrorViewModel             Capture lifecycle, hover state, CMSampleBuffer → CGImage
+│   │   ├── MirrorControlsWindow        Separate floating NSPanel for the controls bar
+│   │   └── MirrorControlsView          SwiftUI controls (opacity menu, lock, close)
+│   ├── Capture/
+│   │   └── ScreenCaptureManager        SCStream wrapper, publishes frames as AsyncStream
+│   └── Settings/
+│       ├── SettingsWindowController    NSWindowController for the Settings window
+│       └── SettingsView                SwiftUI: language picker + About section
 └── Shared/
-    ├── Models/MirrorRegion          Value type: rect + displayID
-    └── Extensions/CGRect+Extensions Coordinate system conversions
+    ├── Models/MirrorRegion             Value type: rect + displayID
+    ├── Localization/
+    │   ├── LocalizationManager         ObservableObject — current language, persistence
+    │   └── AppStrings                  All localized strings (EN / PT-BR / ES)
+    └── Extensions/CGRect+Extensions    Coordinate system conversions
 ```
 
 ## License

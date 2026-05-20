@@ -10,16 +10,30 @@ final class MirrorViewModel: ObservableObject {
         didSet { onClickThroughChange?(isClickThrough) }
     }
     @Published var isLocked: Bool = false {
-        didSet { onLockedChange?(isLocked) }
+        didSet {
+            onLockedChange?(isLocked)
+            updateControlsVisibility()
+        }
     }
     @Published var opacity: Double = 1.0 {
         didSet { onOpacityChange?(opacity) }
     }
     @Published var errorMessage: String?
 
+    @Published var isHoveringMirror: Bool = false {
+        didSet { updateControlsVisibility() }
+    }
+    @Published var isHoveringControls: Bool = false {
+        didSet { updateControlsVisibility() }
+    }
+
     var onClickThroughChange: (@MainActor (Bool) -> Void)?
     var onLockedChange: (@MainActor (Bool) -> Void)?
     var onOpacityChange: (@MainActor (Double) -> Void)?
+    var onControlsVisibilityChange: (@MainActor (Bool) -> Void)?
+    var requestClose: (@MainActor () -> Void)?
+
+    private var hideControlsTask: Task<Void, Never>?
 
     private let captureManager = ScreenCaptureManager()
     private var frameTask: Task<Void, Never>?
@@ -71,6 +85,22 @@ final class MirrorViewModel: ObservableObject {
     }
 
     // MARK: - Frame pipeline
+
+    private func updateControlsVisibility() {
+        hideControlsTask?.cancel()
+        let shouldShow = (isHoveringMirror || isHoveringControls) && !isLocked
+        if shouldShow {
+            onControlsVisibilityChange?(true)
+        } else {
+            hideControlsTask = Task { @MainActor [weak self] in
+                try? await Task.sleep(nanoseconds: 180_000_000)
+                guard let self, !Task.isCancelled else { return }
+                if !(self.isHoveringMirror || self.isHoveringControls) {
+                    self.onControlsVisibilityChange?(false)
+                }
+            }
+        }
+    }
 
     private func startDrainingFrames() {
         frameTask?.cancel()

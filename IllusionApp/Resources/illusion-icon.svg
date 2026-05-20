@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Background gradient: deep blue-purple -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a3e"/>
+      <stop offset="100%" style="stop-color:#0f0f2d"/>
+    </linearGradient>
+
+    <!-- Window gradient: lighter glass effect -->
+    <linearGradient id="windowBack" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a2a5a;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#1e1e4a;stop-opacity:1"/>
+    </linearGradient>
+
+    <!-- Front window gradient: blue glass -->
+    <linearGradient id="windowFront" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a6cf7;stop-opacity:0.95"/>
+      <stop offset="100%" style="stop-color:#2d4fd6;stop-opacity:0.95"/>
+    </linearGradient>
+
+    <!-- Mirror/reflection gradient -->
+    <linearGradient id="mirrorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7b9fff;stop-opacity:0.3"/>
+      <stop offset="50%" style="stop-color:#a78bfa;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#4a6cf7;stop-opacity:0.1"/>
+    </linearGradient>
+
+    <!-- Shimmer gradient on front window -->
+    <linearGradient id="shimmer" x1="0%" y1="0%" x2="60%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.18"/>
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.0"/>
+    </linearGradient>
+
+    <!-- Accent glow -->
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#6c8fff;stop-opacity:0.35"/>
+      <stop offset="100%" style="stop-color:#6c8fff;stop-opacity:0"/>
+    </radialGradient>
+
+    <!-- Drop shadow -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+    <filter id="shadowFront" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="20" stdDeviation="28" flood-color="#1a3aff" flood-opacity="0.35"/>
+    </filter>
+
+    <!-- Rounded rect clip for background -->
+    <clipPath id="bgClip">
+      <rect width="1024" height="1024" rx="220" ry="220"/>
+    </clipPath>
+  </defs>
+
+  <!-- App icon background -->
+  <rect width="1024" height="1024" rx="220" ry="220" fill="url(#bg)"/>
+
+  <!-- Subtle glow in center -->
+  <ellipse cx="512" cy="520" rx="360" ry="300" fill="url(#glow)" clip-path="url(#bgClip)"/>
+
+  <!-- ─── Back window (slightly rotated, offset up-left) ─── -->
+  <g transform="rotate(-6, 512, 512) translate(-55, -45)" filter="url(#shadow)">
+    <rect x="200" y="270" width="500" height="360" rx="22" ry="22" fill="url(#windowBack)" stroke="#4a5090" stroke-width="2.5"/>
+    <!-- Title bar -->
+    <rect x="200" y="270" width="500" height="44" rx="22" ry="22" fill="#252555"/>
+    <rect x="200" y="292" width="500" height="22" fill="#252555"/>
+    <!-- Traffic lights -->
+    <circle cx="242" cy="292" r="9" fill="#ff5f56"/>
+    <circle cx="272" cy="292" r="9" fill="#ffbd2e"/>
+    <circle cx="302" cy="292" r="9" fill="#27c93f"/>
+    <!-- Fake content lines in back window -->
+    <rect x="228" y="340" width="300" height="12" rx="6" fill="#3a3a70" opacity="0.7"/>
+    <rect x="228" y="365" width="220" height="12" rx="6" fill="#3a3a70" opacity="0.5"/>
+    <rect x="228" y="390" width="260" height="12" rx="6" fill="#3a3a70" opacity="0.5"/>
+    <rect x="228" y="430" width="180" height="80" rx="10" fill="#3a3a70" opacity="0.4"/>
+    <rect x="430" y="430" width="240" height="80" rx="10" fill="#3a3a70" opacity="0.4"/>
+  </g>
+
+  <!-- ─── Front window (floating, slight rotation, blue/glass) ─── -->
+  <g transform="rotate(5, 512, 512) translate(55, 48)" filter="url(#shadowFront)">
+    <rect x="240" y="330" width="500" height="360" rx="22" ry="22" fill="url(#windowFront)"/>
+    <!-- Mirror reflection overlay on front window -->
+    <rect x="240" y="330" width="500" height="360" rx="22" ry="22" fill="url(#mirrorGrad)"/>
+    <!-- Shimmer highlight top-left corner -->
+    <rect x="240" y="330" width="500" height="360" rx="22" ry="22" fill="url(#shimmer)"/>
+    <!-- Title bar -->
+    <rect x="240" y="330" width="500" height="44" rx="22" ry="22" fill="rgba(255,255,255,0.12)"/>
+    <rect x="240" y="352" width="500" height="22" fill="rgba(255,255,255,0.12)"/>
+    <!-- Traffic lights (slightly brighter to show it's active/front) -->
+    <circle cx="282" cy="352" r="9" fill="#ff6e67" opacity="0.9"/>
+    <circle cx="312" cy="352" r="9" fill="#ffc12e" opacity="0.9"/>
+    <circle cx="342" cy="352" r="9" fill="#2dca44" opacity="0.9"/>
+    <!-- Fake content: mirrored/reflected lines -->
+    <rect x="268" y="400" width="320" height="12" rx="6" fill="rgba(255,255,255,0.25)"/>
+    <rect x="268" y="425" width="240" height="12" rx="6" fill="rgba(255,255,255,0.18)"/>
+    <rect x="268" y="450" width="280" height="12" rx="6" fill="rgba(255,255,255,0.18)"/>
+    <!-- Mirrored content block -->
+    <rect x="268" y="490" width="200" height="90" rx="10" fill="rgba(255,255,255,0.12)"/>
+    <rect x="484" y="490" width="240" height="90" rx="10" fill="rgba(255,255,255,0.12)"/>
+    <!-- Window border -->
+    <rect x="240" y="330" width="500" height="360" rx="22" ry="22" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+  </g>
+
+  <!-- ─── Reflection line between windows ─── -->
+  <line x1="300" y1="550" x2="724" y2="540" stroke="rgba(150,180,255,0.25)" stroke-width="1.5" stroke-dasharray="8,6"/>
+
+  <!-- ─── Small floating badge: infinity/mirror symbol ─── -->
+  <g transform="translate(512, 810)">
+    <circle r="62" fill="rgba(74,108,247,0.85)" stroke="rgba(255,255,255,0.25)" stroke-width="2.5"/>
+    <!-- Two overlapping circles = mirror/infinity motif -->
+    <ellipse cx="-18" cy="0" rx="26" ry="22" fill="none" stroke="white" stroke-width="5" opacity="0.9"/>
+    <ellipse cx="18" cy="0" rx="26" ry="22" fill="none" stroke="white" stroke-width="5" opacity="0.9"/>
+  </g>
+</svg>

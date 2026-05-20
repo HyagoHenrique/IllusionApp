@@ -15,10 +15,16 @@
 		AA000006 /* MirrorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100006 /* MirrorViewModel.swift */; };
 		AA000007 /* MirrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100007 /* MirrorView.swift */; };
 		AA000008 /* MirrorWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100008 /* MirrorWindow.swift */; };
+		AA000030 /* MirrorControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100030 /* MirrorControlsView.swift */; };
+		AA000031 /* MirrorControlsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100031 /* MirrorControlsWindow.swift */; };
 		AA000009 /* SelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100009 /* SelectionView.swift */; };
 		AA000010 /* SelectionOverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100010 /* SelectionOverlayWindow.swift */; };
 		AA000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA100011 /* Assets.xcassets */; };
 		AA000012 /* ScreenCaptureKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA100012 /* ScreenCaptureKit.framework */; };
+		AA000020 /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100020 /* LocalizationManager.swift */; };
+		AA000021 /* AppStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100021 /* AppStrings.swift */; };
+		AA000022 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100022 /* SettingsView.swift */; };
+		AA000023 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100023 /* SettingsWindowController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,11 +36,17 @@
 		AA100006 /* MirrorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorViewModel.swift; sourceTree = "<group>"; };
 		AA100007 /* MirrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorView.swift; sourceTree = "<group>"; };
 		AA100008 /* MirrorWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorWindow.swift; sourceTree = "<group>"; };
+		AA100030 /* MirrorControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorControlsView.swift; sourceTree = "<group>"; };
+		AA100031 /* MirrorControlsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MirrorControlsWindow.swift; sourceTree = "<group>"; };
 		AA100009 /* SelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionView.swift; sourceTree = "<group>"; };
 		AA100010 /* SelectionOverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionOverlayWindow.swift; sourceTree = "<group>"; };
 		AA100011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AA100012 /* ScreenCaptureKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScreenCaptureKit.framework; path = System/Library/Frameworks/ScreenCaptureKit.framework; sourceTree = SDKROOT; };
 		AA100013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AA100020 /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
+		AA100021 /* AppStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStrings.swift; sourceTree = "<group>"; };
+		AA100022 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		AA100023 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		AAPROD001 /* IllusionApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IllusionApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -86,6 +98,7 @@
 				AAGRP0004 /* Selection */,
 				AAGRP0005 /* Mirror */,
 				AAGRP0008 /* Capture */,
+				AAGRP0011 /* Settings */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -105,6 +118,8 @@
 				AA100006 /* MirrorViewModel.swift */,
 				AA100007 /* MirrorView.swift */,
 				AA100008 /* MirrorWindow.swift */,
+				AA100030 /* MirrorControlsView.swift */,
+				AA100031 /* MirrorControlsWindow.swift */,
 			);
 			path = Mirror;
 			sourceTree = "<group>";
@@ -114,6 +129,7 @@
 			children = (
 				AAGRP0007 /* Models */,
 				AAGRP00EX /* Extensions */,
+				AAGRP0010 /* Localization */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -140,6 +156,24 @@
 				AA100005 /* ScreenCaptureManager.swift */,
 			);
 			path = Capture;
+			sourceTree = "<group>";
+		};
+		AAGRP0010 /* Localization */ = {
+			isa = PBXGroup;
+			children = (
+				AA100020 /* LocalizationManager.swift */,
+				AA100021 /* AppStrings.swift */,
+			);
+			path = Localization;
+			sourceTree = "<group>";
+		};
+		AAGRP0011 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				AA100022 /* SettingsView.swift */,
+				AA100023 /* SettingsWindowController.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 		AAGRP0009 /* Resources */ = {
@@ -245,8 +279,14 @@
 				AA000006 /* MirrorViewModel.swift in Sources */,
 				AA000007 /* MirrorView.swift in Sources */,
 				AA000008 /* MirrorWindow.swift in Sources */,
+				AA000030 /* MirrorControlsView.swift in Sources */,
+				AA000031 /* MirrorControlsWindow.swift in Sources */,
 				AA000009 /* SelectionView.swift in Sources */,
 				AA000010 /* SelectionOverlayWindow.swift in Sources */,
+				AA000020 /* LocalizationManager.swift in Sources */,
+				AA000021 /* AppStrings.swift in Sources */,
+				AA000022 /* SettingsView.swift in Sources */,
+				AA000023 /* SettingsWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
