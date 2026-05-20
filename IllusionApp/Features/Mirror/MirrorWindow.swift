@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
+import Combine
 
-@MainActor
 final class MirrorWindow: NSWindow {
 
     let viewModel: MirrorViewModel
@@ -18,7 +18,7 @@ final class MirrorWindow: NSWindow {
 
         configure()
         attachContent()
-        observeClickThrough()
+        observeViewModel()
     }
 
     // MARK: - Setup
@@ -44,11 +44,7 @@ final class MirrorWindow: NSWindow {
         host.layer?.masksToBounds = true
     }
 
-    private func observeClickThrough() {
-        viewModel.onClickThroughChange = { @MainActor [weak self] enabled in
-            self?.ignoresMouseEvents = enabled
-        }
-
+    private func observeViewModel() {
         viewModel.onLockedChange = { @MainActor [weak self] locked in
             guard let self else { return }
             self.isMovableByWindowBackground = !locked
@@ -72,12 +68,11 @@ final class MirrorWindow: NSWindow {
 
 // MARK: - Controller
 
-@MainActor
 final class MirrorWindowController: NSWindowController {
 
     let viewModel: MirrorViewModel
     private var controlsWindow: MirrorControlsWindow?
-    nonisolated(unsafe) private var frameObserver: NSObjectProtocol?
+    private var frameObserver: AnyCancellable?
 
     init(viewModel: MirrorViewModel) {
         self.viewModel = viewModel
@@ -93,25 +88,16 @@ final class MirrorWindowController: NSWindowController {
         }
 
         // Reposition controls window when mirror window moves or resizes
-        frameObserver = NotificationCenter.default.addObserver(
-            forName: NSWindow.didMoveNotification,
-            object: window,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in self?.repositionControlsIfVisible() }
-        }
+        frameObserver = NotificationCenter.default
+            .publisher(for: NSWindow.didMoveNotification, object: window)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.repositionControlsIfVisible() }
     }
 
     required init?(coder: NSCoder) { nil }
 
-    deinit {
-        if let frameObserver {
-            NotificationCenter.default.removeObserver(frameObserver)
-        }
-    }
-
     func show(for region: MirrorRegion) {
-        Task { @MainActor in
+        Task {
             await viewModel.startMirroring(region: region)
             if let window, region.rect != .zero {
                 let ratio = region.rect.width / region.rect.height

@@ -20,76 +20,45 @@ final class ScreenCaptureManager: NSObject, ObservableObject {
         case notDetermined, authorized, denied
     }
 
-    // MARK: - Authorization
-
-
-    func requestPermission() async {
-        do {
-            print("[ScreenCaptureManager] Requesting permission")
-            try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
-            authorizationStatus = .authorized
-            print("[ScreenCaptureManager] Permission granted")
-        } catch {
-            authorizationStatus = .denied
-            print("[ScreenCaptureManager] Permission denied: \(error.localizedDescription)")
-        }
-    }
-
     // MARK: - Stream lifecycle
 
     func startCapture(region: MirrorRegion) async throws {
-        print("[ScreenCaptureManager.startCapture] Starting")
-
         if isCapturing { await stopCapture() }
 
-        print("[ScreenCaptureManager.startCapture] Getting shareable content for displayID: \(region.displayID)")
         let content: SCShareableContent
         do {
             content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
-            print("[ScreenCaptureManager.startCapture] Got shareable content with \(content.displays.count) displays")
             authorizationStatus = .authorized
         } catch let error as SCStreamError {
-            print("SCStreamError in startCapture: \(error)")
             authorizationStatus = .denied
             throw error
         } catch {
-            print("Error getting shareable content: \(error)")
             authorizationStatus = .denied
             throw error
         }
 
-        print("[ScreenCaptureManager.startCapture] Finding display \(region.displayID)")
         guard let display = content.displays.first(where: { $0.displayID == region.displayID })
                 ?? content.displays.first else {
             throw CaptureError.displayNotFound
         }
-        print("[ScreenCaptureManager.startCapture] Found display: \(display.displayID)")
 
-        print("[ScreenCaptureManager.startCapture] Creating AsyncStream")
         framesContinuation?.finish()
         let (newFrameStream, continuation) = AsyncStream<CGImage>.makeStream()
         frameStream = newFrameStream
         framesContinuation = continuation
 
-        print("[ScreenCaptureManager.startCapture] Creating SCContentFilter and config")
         let filter = SCContentFilter(display: display, excludingWindows: [])
         let config = buildStreamConfig(region: region, display: display)
 
-        print("[ScreenCaptureManager.startCapture] Creating CaptureStreamOutput")
         let output = CaptureStreamOutput(continuation: continuation)
         self.streamOutput = output
 
-        print("[ScreenCaptureManager.startCapture] Creating SCStream")
         let newStream = SCStream(filter: filter, configuration: config, delegate: output)
-        print("[ScreenCaptureManager.startCapture] Adding stream output")
         try newStream.addStreamOutput(output, type: .screen, sampleHandlerQueue: .global(qos: .userInteractive))
-        print("[ScreenCaptureManager.startCapture] Starting capture")
         try await newStream.startCapture()
-        print("[ScreenCaptureManager.startCapture] Capture started successfully")
 
         self.stream = newStream
         isCapturing = true
-        print("[ScreenCaptureManager.startCapture] Complete")
     }
 
     func stopCapture() async {
@@ -100,20 +69,6 @@ final class ScreenCaptureManager: NSObject, ObservableObject {
         self.stream = nil
         self.streamOutput = nil
         isCapturing = false
-    }
-
-    func updateRegion(_ region: MirrorRegion) async throws {
-        guard isCapturing, let stream else { return }
-
-        let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
-        guard let display = content.displays.first(where: { $0.displayID == region.displayID })
-                ?? content.displays.first else { return }
-
-        let filter = SCContentFilter(display: display, excludingWindows: [])
-        let config = buildStreamConfig(region: region, display: display)
-
-        try await stream.updateConfiguration(config)
-        try await stream.updateContentFilter(filter)
     }
 
     // MARK: - Private

@@ -36,7 +36,7 @@ struct MirrorControlsView: View {
             .help(AppStrings.Mirror.clickToLock(loc.language))
 
             Button {
-                Task { @MainActor in
+                Task {
                     await viewModel.stopMirroring()
                     viewModel.requestClose?()
                 }

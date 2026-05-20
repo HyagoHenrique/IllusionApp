@@ -25,20 +25,44 @@ enum Language: String, CaseIterable, Identifiable {
     }
 }
 
+/// Holds translations for a single string and resolves them by language.
+/// Call as a function: `myString(currentLanguage)`.
+struct LocalizedString: Sendable {
+    let en: String
+    let pt: String
+    let es: String
+
+    init(en: String, pt: String, es: String) {
+        self.en = en
+        self.pt = pt
+        self.es = es
+    }
+
+    func callAsFunction(_ language: Language) -> String {
+        switch language {
+        case .english:    return en
+        case .portuguese: return pt
+        case .spanish:    return es
+        }
+    }
+}
+
 @MainActor
 final class LocalizationManager: ObservableObject {
 
     static let shared = LocalizationManager()
 
+    private static let storageKey = "AppLanguage"
+
     @Published var language: Language {
         didSet {
-            UserDefaults.standard.set(language.rawValue, forKey: "AppLanguage")
+            UserDefaults.standard.set(language.rawValue, forKey: Self.storageKey)
             NotificationCenter.default.post(name: .languageDidChange, object: nil)
         }
     }
 
     private init() {
-        let saved = UserDefaults.standard.string(forKey: "AppLanguage") ?? ""
+        let saved = UserDefaults.standard.string(forKey: Self.storageKey) ?? ""
         language = Language(rawValue: saved) ?? .english
     }
 }

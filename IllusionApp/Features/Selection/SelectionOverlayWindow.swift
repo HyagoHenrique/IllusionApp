@@ -1,7 +1,6 @@
 import AppKit
 import SwiftUI
 
-@MainActor
 final class SelectionOverlayWindow: NSWindow {
 
     var onSelection: (@MainActor (MirrorRegion) -> Void)?
@@ -26,10 +25,8 @@ final class SelectionOverlayWindow: NSWindow {
     }
 
     func show(on screen: NSScreen) {
-        print("[SelectionOverlayWindow] show() called")
         let displayID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
                         ?? CGMainDisplayID()
-        print("[SelectionOverlayWindow] displayID: \(displayID)")
 
         let selectionView = SelectionView(
             onSelection: { [weak self] rect in

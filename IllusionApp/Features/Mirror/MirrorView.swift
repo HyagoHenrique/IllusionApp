@@ -45,7 +45,7 @@ struct MirrorView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 16)
 
-                        if error.contains("permission") || error.contains("declined") {
+                        if viewModel.isPermissionDenied {
                             Button(AppStrings.Mirror.openPrivacySettings(loc.language)) {
                                 viewModel.openPrivacySettings()
                             }

@@ -80,7 +80,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         isSelecting = true
 
-        if selectionWindow != nil { selectionWindow = nil }
+        selectionWindow = nil
 
         let overlay = SelectionOverlayWindow(screen: screen)
         overlay.onSelection = { [weak self] region in
@@ -115,9 +115,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 object: window,
                 queue: .main
             ) { [weak self] _ in
-                Task { @MainActor in
-                    self?.mirrorWindowControllers.removeAll { $0.window == window }
-                }
+                Task { @MainActor in self?.mirrorWindowControllers.removeAll { $0.window == window } }
             }
         }
 

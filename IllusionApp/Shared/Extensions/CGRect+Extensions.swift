@@ -9,18 +9,4 @@ extension CGRect {
         let flippedY = screenHeight - self.maxY
         return CGRect(x: self.origin.x, y: flippedY, width: self.width, height: self.height)
     }
-
-    /// Returns the rect scaled by the screen's backing scale factor.
-    func toPhysicalPixels(backingScaleFactor: CGFloat) -> CGRect {
-        return CGRect(
-            x: self.origin.x * backingScaleFactor,
-            y: self.origin.y * backingScaleFactor,
-            width: self.width * backingScaleFactor,
-            height: self.height * backingScaleFactor
-        )
-    }
-
-    var center: CGPoint {
-        CGPoint(x: midX, y: midY)
-    }
 }

@@ -1,7 +1,6 @@
 import AppKit
 import SwiftUI
 
-@MainActor
 final class SettingsWindowController: NSWindowController {
 
     convenience init() {
@@ -22,7 +21,7 @@ final class SettingsWindowController: NSWindowController {
     func show() {
         if let window {
             window.makeKeyAndOrderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
+            NSApp.activate()
         }
     }
 }
