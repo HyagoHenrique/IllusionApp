@@ -1,7 +1,10 @@
 import AppKit
 import SwiftUI
 
-final class SelectionOverlayWindow: NSWindow {
+/// A floating panel that covers one screen for region selection.
+/// Uses NSPanel + nonactivatingPanel so it appears on any display
+/// without requiring the app to be active.
+final class SelectionOverlayWindow: NSPanel {
 
     var onSelection: (@MainActor (MirrorRegion) -> Void)?
     var onCancel: (@MainActor () -> Void)?
@@ -9,24 +12,24 @@ final class SelectionOverlayWindow: NSWindow {
     init(screen: NSScreen) {
         super.init(
             contentRect: screen.frame,
-            styleMask: [.borderless, .fullSizeContentView],
+            styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
-
-        // .statusBar sits above normal app windows without requiring special entitlements.
-        // .screenSaverWindow would be ideal but requires a private entitlement on macOS 14+.
-        level = .statusBar
-        isOpaque = false
-        backgroundColor = .clear
-        ignoresMouseEvents = false
+        level            = .statusBar
+        isOpaque         = false
+        backgroundColor  = .clear
+        isFloatingPanel  = true   // stays visible even when app is not active
+        hidesOnDeactivate = false // don't hide when another app becomes active
+        isMovable        = false
         isReleasedWhenClosed = false
-        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
+        ignoresMouseEvents   = false
+        collectionBehavior   = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
     }
 
     func show(on screen: NSScreen) {
-        let displayID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID
-                        ?? CGMainDisplayID()
+        let displayID = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")]
+                        as? CGDirectDisplayID ?? CGMainDisplayID()
 
         let selectionView = SelectionView(
             onSelection: { [weak self] rect in
@@ -41,10 +44,8 @@ final class SelectionOverlayWindow: NSWindow {
                     width: rect.width,
                     height: rect.height
                 )
-                let region = MirrorRegion(rect: nsRect, displayID: displayID)
+                let region   = MirrorRegion(rect: nsRect, displayID: displayID)
                 let callback = self.onSelection
-                // Defer close to next run loop iteration to avoid releasing the window
-                // while AppKit still holds autorelease references to it (use-after-free).
                 DispatchQueue.main.async { [weak self] in
                     self?.close()
                     callback?(region)
@@ -60,19 +61,15 @@ final class SelectionOverlayWindow: NSWindow {
 
         contentView = NSHostingView(rootView: selectionView)
         setFrame(screen.frame, display: true)
-        makeKeyAndOrderFront(nil)
-        // Ensure this window receives keyboard events for Esc
-        makeFirstResponder(contentView)
+        orderFrontRegardless()
     }
 
-    override var canBecomeKey: Bool { true }
-    override var canBecomeMain: Bool { true }
+    // Panels can become key so Esc is handled via keyDown when this panel is key.
+    override var canBecomeKey: Bool  { true }
+    override var canBecomeMain: Bool { false }
 
     override func keyDown(with event: NSEvent) {
-        guard event.keyCode == 53 else { // 53 = Escape
-            super.keyDown(with: event)
-            return
-        }
+        guard event.keyCode == 53 else { super.keyDown(with: event); return } // 53 = Esc
         DispatchQueue.main.async { [weak self] in
             self?.close()
             self?.onCancel?()

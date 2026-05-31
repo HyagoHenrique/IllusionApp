@@ -5,7 +5,8 @@ import Combine
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var statusItem: NSStatusItem?
-    private var selectionWindow: SelectionOverlayWindow?
+    private var selectionPanels: [SelectionOverlayWindow] = []
+    private var escMonitor: Any?
     private var mirrorWindowControllers: [MirrorWindowController] = []
     private var isSelecting = false
     private var settingsWindowController: SettingsWindowController?
@@ -36,13 +37,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let menu = NSMenu()
-        menu.addItem(withTitle: AppStrings.Menu.mirrorRegion(l),   action: #selector(startSelection),          keyEquivalent: "m")
-        menu.addItem(withTitle: AppStrings.Menu.unlockAllScreens(l), action: #selector(unlockAllScreens),      keyEquivalent: "u")
-        menu.addItem(withTitle: AppStrings.Menu.stopMirroring(l),  action: #selector(stopMirroring),           keyEquivalent: ".")
+        menu.addItem(withTitle: AppStrings.Menu.mirrorRegion(l),    action: #selector(startSelection),               keyEquivalent: "m")
+        menu.addItem(withTitle: AppStrings.Menu.unlockAllScreens(l), action: #selector(unlockAllScreens),            keyEquivalent: "u")
+        menu.addItem(withTitle: AppStrings.Menu.stopMirroring(l),   action: #selector(stopMirroring),               keyEquivalent: ".")
         menu.addItem(.separator())
-        menu.addItem(withTitle: AppStrings.Menu.settings(l),       action: #selector(openSettings),            keyEquivalent: ",")
+        menu.addItem(withTitle: AppStrings.Menu.settings(l),        action: #selector(openSettings),                keyEquivalent: ",")
         menu.addItem(.separator())
-        menu.addItem(withTitle: AppStrings.Menu.quit(l),           action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: AppStrings.Menu.quit(l),            action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 
         statusItem?.menu = menu
     }
@@ -76,23 +77,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        guard let screen = NSScreen.main else { return }
-
         isSelecting = true
+        dismissSelectionPanels()
 
-        selectionWindow = nil
+        // One NSPanel per screen — NSPanel with nonactivatingPanel + isFloatingPanel
+        // is the most reliable way to cover secondary monitors in a menu-bar app.
+        for screen in NSScreen.screens {
+            let panel = SelectionOverlayWindow(screen: screen)
+            panel.onSelection = { [weak self] region in
+                guard let self else { return }
+                self.dismissSelectionPanels()
+                self.openMirror(for: region)
+                self.isSelecting = false
+            }
+            panel.onCancel = { [weak self] in
+                self?.dismissSelectionPanels()
+                self?.isSelecting = false
+            }
+            selectionPanels.append(panel)
+            panel.show(on: screen)
+        }
 
-        let overlay = SelectionOverlayWindow(screen: screen)
-        overlay.onSelection = { [weak self] region in
-            guard let self else { return }
-            self.openMirror(for: region)
-            self.isSelecting = false
+        // Global Esc monitor so pressing Escape on any screen cancels selection.
+        escMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard event.keyCode == 53 else { return } // 53 = Esc
+            DispatchQueue.main.async {
+                self?.dismissSelectionPanels()
+                self?.isSelecting = false
+            }
         }
-        overlay.onCancel = { [weak self] in
-            self?.isSelecting = false
-        }
-        selectionWindow = overlay
-        overlay.show(on: screen)
     }
 
     @objc private func stopMirroring() {
@@ -102,6 +115,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 await controller.viewModel.stopMirroring()
             }
             mirrorWindowControllers.removeAll()
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func dismissSelectionPanels() {
+        selectionPanels.forEach { $0.close() }
+        selectionPanels = []
+        if let monitor = escMonitor {
+            NSEvent.removeMonitor(monitor)
+            escMonitor = nil
         }
     }
 

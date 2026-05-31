@@ -5,6 +5,7 @@ import AppKit
 struct MirrorView: View {
     @ObservedObject var viewModel: MirrorViewModel
     @ObservedObject private var loc = LocalizationManager.shared
+    @Environment(\.displayScale) private var displayScale
 
     var body: some View {
         ZStack {
@@ -20,7 +21,7 @@ struct MirrorView: View {
     @ViewBuilder
     private var frameContent: some View {
         if let frame = viewModel.currentFrame {
-            Image(decorative: frame, scale: 1.0)
+            Image(decorative: frame, scale: displayScale)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .clipped()
